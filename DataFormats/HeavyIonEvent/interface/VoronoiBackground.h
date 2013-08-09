@@ -1,7 +1,3 @@
-//
-// $Id: VoronoiBackground.h,v 1.12 2010/08/23 16:42:01 nart Exp $
-//
-
 #ifndef DataFormats_VoronoiBackground_h
 #define DataFormats_VoronoiBackground_h
 

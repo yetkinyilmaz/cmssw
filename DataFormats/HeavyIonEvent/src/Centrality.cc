@@ -1,7 +1,3 @@
-//
-// $Id: Centrality.cc,v 1.14 2010/10/16 17:09:34 yilmaz Exp $
-//
-
 #include "DataFormats/HeavyIonEvent/interface/Centrality.h"
 #include "FWCore/ParameterSet/interface/Registry.h"
 
