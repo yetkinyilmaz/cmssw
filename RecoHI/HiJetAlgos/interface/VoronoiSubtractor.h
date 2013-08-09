@@ -8,14 +8,6 @@
 class VoronoiSubtractor : public PileUpSubtractor {
  public:
    VoronoiSubtractor(const edm::ParameterSet& iConfig);
-/*: PileUpSubtractor(iConfig),
-     sumRecHits_(iConfig.getParameter<bool>("sumRecHits")),
-      dropZeroTowers_(iConfig.getUntrackedParameter<bool>("dropZeroTowers",true)){;}*/
-
-/*    virtual void reset(std::vector<edm::Ptr<reco::Candidate> >& input,
-		       std::vector<fastjet::PseudoJet>& towers,
-		       std::vector<fastjet::PseudoJet>& output);
-*/
     virtual void setupGeometryMap(edm::Event& iEvent,const edm::EventSetup& iSetup);
     virtual void calculatePedestal(std::vector<fastjet::PseudoJet> const & coll);
     virtual void subtractPedestal(std::vector<fastjet::PseudoJet> & coll);
