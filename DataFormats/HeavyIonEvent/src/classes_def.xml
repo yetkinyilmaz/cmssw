@@ -18,5 +18,7 @@
 <class name="edm::Wrapper<reco::VoronoiBackground>"/>
 <class name="edm::ValueMap<reco::VoronoiBackground>" />
 <class name="edm::Wrapper<edm::ValueMap<reco::VoronoiBackground> >" />
+<class name="std::vector<reco::VoronoiBackground>" />
+<class name="edm::Wrapper<std::vector<reco::VoronoiBackground> >" />
 <class name="edm::Wrapper<pat::HeavyIon >" />
 </lcgdict>

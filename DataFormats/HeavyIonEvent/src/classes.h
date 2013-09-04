@@ -25,6 +25,10 @@ namespace {
      reco::VoronoiMap pfvorvmap;
      edm::Wrapper<reco::VoronoiMap> pfwvorvmap;
 
+     std::vector<reco::VoronoiBackground> vecvor;
+     edm::Wrapper<std::vector<reco::VoronoiBackground> > vecwvor;
+
+
      edm::Wrapper<pat::HeavyIon >              w_v_p_hi;
 
   };
