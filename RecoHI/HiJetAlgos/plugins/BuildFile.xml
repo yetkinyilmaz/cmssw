@@ -4,7 +4,6 @@
 <use   name="FWCore/ParameterSet"/>
 <use   name="RecoHI/HiJetAlgos"/>
 <use   name="DataFormats/JetReco"/>
-<use   name="DataFormats/HeavyIonEvent"/>
 <Flags CXXFLAGS="-frounding-math"/>
 <flags   EDM_PLUGIN="1"/>
 <library   file="*.cc" name="HiJetAlgosPlugins">

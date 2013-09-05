@@ -1501,7 +1501,12 @@ namespace {
 
 					const double azimuth = iterator->momentum.azimuth();
 					const float (*p)[2][46] =
-						ue.ue_predictor_pf[j][predictor_index];
+#ifdef STANDALONE
+						ue_predictor_pf[j][predictor_index]
+#else // STANDALONE
+						ue.ue_predictor_pf[j][predictor_index]
+#endif // STANDALONE
+						;
 					double pred = 0;
 
 					for (size_t l = 0; l < 3; l++) {
@@ -1543,6 +1548,23 @@ namespace {
 
 					double interp;
 
+#ifdef STANDALONE
+					if (j == 0) {
+						interp =
+							ue_interpolation_pf0[predictor_index][
+								interpolation_index];
+					}
+					else if (j == 1) {
+						interp =
+							ue_interpolation_pf1[predictor_index][
+								interpolation_index];
+					}
+					else if (j == 2) {
+						interp =
+							ue_interpolation_pf2[predictor_index][
+								interpolation_index];
+					}
+#else // STANDALONE
 					if (j == 0) {
 						interp =
 							ue.ue_interpolation_pf0[predictor_index][
@@ -1558,7 +1580,7 @@ namespace {
 							ue.ue_interpolation_pf2[predictor_index][
 								interpolation_index];
 					}
-
+#endif // STANDALONE
 					// Interpolate down to the finely binned
 					// pseudorapidity
 
@@ -1661,73 +1683,108 @@ namespace {
 						_event[i].incident.count(_event.begin() + j) +
 						_event[j].incident.count(_event.begin() + i);
 
-				if (active_i_j &&
-					(radial_distance_square[i][j] <
-					 _radial_distance_square_max ||
-					 incident_count > 0)) {
-					_recombine_unsigned[i].push_back(j);
+					if (active_i_j &&
+						(radial_distance_square[i][j] <
+						 _radial_distance_square_max ||
+						 incident_count > 0)) {
+						_recombine_unsigned[i].push_back(j);
+					}
 				}
-			}
-
 			}
 		}
 		void lp_populate(bpmpd_problem_t &_lp_problem)
 		{
-		// The minimax problem is transformed into the LP notation
-		// using the cost variable trick:
-		//
-		// Minimize c
-		// Subject to:
-		// c + sum_l t_kl + n_k >= 0 for negative cells n_k
-		// c - sum_k t_kl + p_l >= 0 for positive cells p_l
+			// The minimax problem is transformed into the LP notation
+			// using the cost variable trick:
+			//
+			// Minimize c
+			// Subject to:
+			// c + sum_l t_kl + n_k >= 0 for negative cells n_k
+			// c - sum_k t_kl + p_l >= 0 for positive cells p_l
 
-		// Common LP mistakes during code development and their CPLEX
-		// errors when running CPLEX in data checking mode:
-		//
-		// Error 1201 (column index ... out of range): Bad column
-		// indexing, usually index_column out of bound for the cost
-		// variables.
-		//
-		// Error 1222 (duplicate entry): Forgetting to increment
-		// index_row, or index_column out of bound for the cost
-		// variables.
+			// Common LP mistakes during code development and their
+			// CPLEX errors when running CPLEX in data checking mode:
+			//
+			// Error 1201 (column index ... out of range): Bad column
+			// indexing, usually index_column out of bound for the
+			// cost variables.
+			//
+			// Error 1222 (duplicate entry): Forgetting to increment
+			// index_row, or index_column out of bound for the cost
+			// variables.
 
-		_lp_problem.set_objective_sense(bpmpd_problem_t::minimize);
+			_lp_problem.set_objective_sense(bpmpd_problem_t::minimize);
 
-		// Rows (RHS of the constraints) of the LP problem
+			// Rows (RHS of the constraints) of the LP problem
 
-		static const size_t nsector_azimuth = 12;
+			static const size_t nsector_azimuth = 12;
 
-		// Approximatively 2 pi / nsector_azimuth segmentation of the
-		// CMS HCAL granularity
+			// Approximatively 2 pi / nsector_azimuth segmentation of
+			// the CMS HCAL granularity
 
-		static const size_t ncms_hcal_edge_pseudorapidity = 19 + 1;
-		static const double cms_hcal_edge_pseudorapidity[
-			ncms_hcal_edge_pseudorapidity] = {
-			-5.191, -4.538, -4.013,
-			-3.489, -2.853, -2.322, -1.830, -1.305, -0.783, -0.261,
-			 0.261,  0.783,  1.305,  1.830,  2.322,  2.853,  3.489,
-			 4.013,  4.538,  5.191
-		};
+			static const size_t ncms_hcal_edge_pseudorapidity = 19 + 1;
+			static const double cms_hcal_edge_pseudorapidity[
+				ncms_hcal_edge_pseudorapidity] = {
+				-5.191, -4.538, -4.013,
+				-3.489, -2.853, -2.322, -1.830, -1.305, -0.783, -0.261,
+				 0.261,  0.783,  1.305,  1.830,  2.322,  2.853,  3.489,
+				 4.013,  4.538,  5.191
+			};
 
-		size_t nedge_pseudorapidity;
-		const double *edge_pseudorapidity;
+			size_t nedge_pseudorapidity;
+			const double *edge_pseudorapidity;
 
-		nedge_pseudorapidity = ncms_hcal_edge_pseudorapidity;
-		edge_pseudorapidity = cms_hcal_edge_pseudorapidity;
+			nedge_pseudorapidity = ncms_hcal_edge_pseudorapidity;
+			edge_pseudorapidity = cms_hcal_edge_pseudorapidity;
 
-		const size_t nsuperblock = (nedge_pseudorapidity - 2) * nsector_azimuth;
+			const size_t nsuperblock = (nedge_pseudorapidity - 2) *
+				nsector_azimuth;
 
-		size_t index_row = 0;
-		for (size_t index_pseudorapidity = 0;
-			 index_pseudorapidity < nedge_pseudorapidity - 2;
-			 index_pseudorapidity++) {
-			for (size_t index_azimuth = 0;
-				 index_azimuth < nsector_azimuth - 1;
-				 index_azimuth++) {
+			size_t index_row = 0;
+			for (size_t index_pseudorapidity = 0;
+				 index_pseudorapidity < nedge_pseudorapidity - 2;
+				 index_pseudorapidity++) {
+				for (size_t index_azimuth = 0;
+					 index_azimuth < nsector_azimuth - 1;
+					 index_azimuth++) {
+					const size_t index_column =
+						index_pseudorapidity * nsector_azimuth +
+						index_azimuth;
+					_lp_problem.push_back_row(
+						bpmpd_problem_t::greater_equal, 0);
+					_lp_problem.push_back_coefficient(
+						index_row, index_column, 1);
+					_lp_problem.push_back_coefficient(
+						index_row, nsuperblock + index_column, -1);
+					index_row++;
+					_lp_problem.push_back_row(
+						bpmpd_problem_t::greater_equal, 0);
+					_lp_problem.push_back_coefficient(
+						index_row, index_column, 1);
+					_lp_problem.push_back_coefficient(
+						index_row, nsuperblock + index_column + 1, -1);
+					index_row++;
+					_lp_problem.push_back_row(
+						bpmpd_problem_t::greater_equal, 0);
+					_lp_problem.push_back_coefficient(
+						index_row, index_column, 1);
+					_lp_problem.push_back_coefficient(
+						index_row,
+						nsuperblock + index_column + nsector_azimuth, -1);
+					index_row++;
+					_lp_problem.push_back_row(
+						bpmpd_problem_t::greater_equal, 0);
+					_lp_problem.push_back_coefficient(
+						index_row, index_column, 1);
+					_lp_problem.push_back_coefficient(
+						index_row,
+						nsuperblock + index_column + nsector_azimuth + 1,
+						-1);
+					index_row++;
+				}
 				const size_t index_column =
 					index_pseudorapidity * nsector_azimuth +
-					index_azimuth;
+					nsector_azimuth - 1;
 				_lp_problem.push_back_row(
 					bpmpd_problem_t::greater_equal, 0);
 				_lp_problem.push_back_coefficient(
@@ -1740,7 +1797,9 @@ namespace {
 				_lp_problem.push_back_coefficient(
 					index_row, index_column, 1);
 				_lp_problem.push_back_coefficient(
-					index_row, nsuperblock + index_column + 1, -1);
+					index_row,
+					nsuperblock + index_column - (nsector_azimuth - 1),
+					-1);
 				index_row++;
 				_lp_problem.push_back_row(
 					bpmpd_problem_t::greater_equal, 0);
@@ -1756,230 +1815,232 @@ namespace {
 					index_row, index_column, 1);
 				_lp_problem.push_back_coefficient(
 					index_row,
-					nsuperblock + index_column + nsector_azimuth + 1,
+					nsuperblock + index_column + nsector_azimuth -
+					(nsector_azimuth - 1),
 					-1);
 				index_row++;
 			}
-			const size_t index_column =
-				index_pseudorapidity * nsector_azimuth +
-				nsector_azimuth - 1;
-			_lp_problem.push_back_row(
-				bpmpd_problem_t::greater_equal, 0);
-			_lp_problem.push_back_coefficient(
-				index_row, index_column, 1);
-			_lp_problem.push_back_coefficient(
-				index_row, nsuperblock + index_column, -1);
-			index_row++;
-			_lp_problem.push_back_row(
-				bpmpd_problem_t::greater_equal, 0);
-			_lp_problem.push_back_coefficient(
-				index_row, index_column, 1);
-			_lp_problem.push_back_coefficient(
-				index_row,
-				nsuperblock + index_column - (nsector_azimuth - 1),
-				-1);
-			index_row++;
-			_lp_problem.push_back_row(
-				bpmpd_problem_t::greater_equal, 0);
-			_lp_problem.push_back_coefficient(
-				index_row, index_column, 1);
-			_lp_problem.push_back_coefficient(
-				index_row,
-				nsuperblock + index_column + nsector_azimuth, -1);
-			index_row++;
-			_lp_problem.push_back_row(
-				bpmpd_problem_t::greater_equal, 0);
-			_lp_problem.push_back_coefficient(
-				index_row, index_column, 1);
-			_lp_problem.push_back_coefficient(
-				index_row,
-				nsuperblock + index_column + nsector_azimuth -
-				(nsector_azimuth - 1),
-				-1);
-			index_row++;
-		}
 
-		const size_t nstaggered_block = (nedge_pseudorapidity - 1) * nsector_azimuth;
-		const size_t nblock = nsuperblock + 2 * nstaggered_block;
+			const size_t nstaggered_block =
+				(nedge_pseudorapidity - 1) * nsector_azimuth;
+			const size_t nblock = nsuperblock + 2 * nstaggered_block;
 
-		_nblock_subtract = std::vector<size_t>(_event.size(), 0);
+			_nblock_subtract = std::vector<size_t>(_event.size(), 0);
 
-		std::vector<size_t> positive_index(_event.size(), _event.size());
-		size_t positive_count = 0;
+			std::vector<size_t>
+				positive_index(_event.size(), _event.size());
+			size_t positive_count = 0;
 
-		for (std::vector<particle_t>::const_iterator iterator = _event.begin();
-			 iterator != _event.end(); iterator++) {
-			if (iterator->momentum_perp_subtracted >= 0) {
-				positive_index[iterator - _event.begin()] = positive_count;
-				positive_count++;
-			}
-		}
-
-		_ncost = nblock + positive_count;
-
-		std::vector<particle_t>::const_iterator iterator_particle =
-			_event.begin();
-		std::vector<bool>::const_iterator iterator_active =
-			_active.begin();
-		std::vector<std::vector<size_t> >::const_iterator
-			iterator_recombine_index_outer = _recombine_index.begin();
-		std::vector<std::vector<size_t> >::const_iterator
-			iterator_recombine_unsigned_outer = _recombine_unsigned.begin();
-		size_t index_column_max = _ncost - 1;
-		for (; iterator_particle != _event.end();
-			 iterator_particle++,
-				 iterator_active++,
-				 iterator_recombine_index_outer++,
-				 iterator_recombine_unsigned_outer++) {
-			if (*iterator_active) {
-				int index_pseudorapidity = -1;
-
-				for (size_t i = 1; i < nedge_pseudorapidity; i++) {
-					if (iterator_particle->momentum.pseudorapidity() >= edge_pseudorapidity[i - 1] &&
-						iterator_particle->momentum.pseudorapidity() < edge_pseudorapidity[i]) {
-						index_pseudorapidity = i - 1;
-					}
+			for (std::vector<particle_t>::const_iterator iterator =
+					 _event.begin();
+				 iterator != _event.end(); iterator++) {
+				if (iterator->momentum_perp_subtracted >= 0) {
+					positive_index[iterator - _event.begin()] =
+						positive_count;
+					positive_count++;
 				}
+			}
 
-				const int index_azimuth = floor(
-					(iterator_particle->momentum.pseudorapidity() + M_PI) *
-					((nsector_azimuth >> 1) / M_PI));
+			_ncost = nblock + positive_count;
 
-				if (index_pseudorapidity != -1) {
-					// p_i - sum t - u = c_i
-					// or: c_i + u + sum_t = p_i
-					// n_i + sum t - u <= 0
-					// or: u - sum_t >= n_i
+			std::vector<particle_t>::const_iterator
+				iterator_particle = _event.begin();
+			std::vector<bool>::const_iterator iterator_active =
+				_active.begin();
+			std::vector<std::vector<size_t> >::const_iterator
+				iterator_recombine_index_outer =
+				_recombine_index.begin();
+			std::vector<std::vector<size_t> >::const_iterator
+				iterator_recombine_unsigned_outer =
+				_recombine_unsigned.begin();
+			size_t index_column_max = _ncost - 1;
+			for (; iterator_particle != _event.end();
+				 iterator_particle++, iterator_active++,
+					 iterator_recombine_index_outer++,
+					 iterator_recombine_unsigned_outer++) {
+				if (*iterator_active) {
+					int index_pseudorapidity = -1;
 
-					// Inequality RHS
-					_lp_problem.push_back_row(
-											  iterator_particle->momentum_perp_subtracted >= 0 ?
-						bpmpd_problem_t::equal :
-						bpmpd_problem_t::greater_equal,
-						iterator_particle->momentum_perp_subtracted);
-
-					// Energy transfer coefficients t_kl
-					const double sign = iterator_particle->momentum_perp_subtracted >= 0 ? 1 : -1;
-					const size_t index_column_block_subtract =
-						nsuperblock +
-						(nedge_pseudorapidity - 1) * nsector_azimuth +
-						index_pseudorapidity * nsector_azimuth +
-						index_azimuth;
-
-					_nblock_subtract[iterator_particle - _event.begin()] =
-						index_column_block_subtract;
-
-					if (iterator_particle->momentum_perp_subtracted >= 0) {
-						const size_t index_column_cost =
-							nblock + positive_index[iterator_particle - _event.begin()];
-
-						_lp_problem.push_back_coefficient(
-							index_row, index_column_cost, 1);
-						index_column_max =
-							std::max(index_column_max, index_column_cost);
+/////////////////////////////////////////////////////////////////////
+					for (size_t i = 1; i < nedge_pseudorapidity; i++) {
+						if (iterator_particle->momentum.pseudorapidity() >= edge_pseudorapidity[i - 1] &&
+							iterator_particle->momentum.pseudorapidity() < edge_pseudorapidity[i]) {
+							index_pseudorapidity = i - 1;
+						}
 					}
-					_lp_problem.push_back_coefficient(
-						index_row, index_column_block_subtract, 1);
-					index_column_max =
-						std::max(index_column_max, index_column_block_subtract);
 
-					for (std::vector<size_t>::const_iterator
-							 iterator_recombine_index_inner =
-							 iterator_recombine_index_outer->begin();
-						 iterator_recombine_index_inner !=
-							 iterator_recombine_index_outer->end();
-						 iterator_recombine_index_inner++) {
-						const size_t index_column =
-							*iterator_recombine_index_inner +
-							_ncost;
+					const int index_azimuth = floor(
+						(iterator_particle->momentum.pseudorapidity() + M_PI) *
+						((nsector_azimuth >> 1) / M_PI));
 
-						_lp_problem.push_back_coefficient(
-							index_row, index_column, sign);
-						index_column_max =
-							std::max(index_column_max, index_column);
-					}
-					index_row++;
+					if (index_pseudorapidity != -1) {
+						// p_i - sum t - u = c_i
+						// or: c_i + u + sum_t = p_i
+						// n_i + sum t - u <= 0
+						// or: u - sum_t >= n_i
 
-					const size_t index_column_block =
-						nsuperblock +
-						index_pseudorapidity * nsector_azimuth +
-						index_azimuth;
+						// Inequality RHS
+						_lp_problem.push_back_row(
+							iterator_particle->momentum_perp_subtracted >= 0 ?
+							bpmpd_problem_t::equal :
+							bpmpd_problem_t::greater_equal,
+							iterator_particle->momentum_perp_subtracted);
 
+						// Energy transfer coefficients t_kl
+						const double sign = iterator_particle->momentum_perp_subtracted >= 0 ? 1 : -1;
+						const size_t index_column_block_subtract =
+							nsuperblock +
+							(nedge_pseudorapidity - 1) * nsector_azimuth +
+							index_pseudorapidity * nsector_azimuth +
+							index_azimuth;
 
-					// sum_R c_i - o_i >= -d
-					// or: d + sum_R c_i >= o_i
-					// sum_R c_i - o_i <= d
-					// or: d - sum_R c_i >= -o_i
+						_nblock_subtract[iterator_particle - _event.begin()] =
+							index_column_block_subtract;
 
-					double sum_unequalized;
-
-					sum_unequalized = 0;
-					for (std::vector<size_t>::const_iterator
-							 iterator_recombine_unsigned_inner =
-							 iterator_recombine_unsigned_outer->begin();
-						 iterator_recombine_unsigned_inner !=
-							 iterator_recombine_unsigned_outer->end();
-						 iterator_recombine_unsigned_inner++) {
-						sum_unequalized +=
-							_event[*iterator_recombine_unsigned_inner].momentum_perp_subtracted;
-					}
-					sum_unequalized = std::max(0.0, sum_unequalized);
-
-					const double weight = sum_unequalized;
-
-					if (weight > 0) {
-					_lp_problem.push_back_row(
-						bpmpd_problem_t::greater_equal,
-						sum_unequalized);
-
-					_lp_problem.push_back_coefficient(
-						index_row, index_column_block, 1.0 / weight);
-
-					for (std::vector<size_t>::const_iterator
-							 iterator_recombine_unsigned_inner =
-							 iterator_recombine_unsigned_outer->begin();
-						 iterator_recombine_unsigned_inner !=
-							 iterator_recombine_unsigned_outer->end();
-						 iterator_recombine_unsigned_inner++) {
-						if (_event[*iterator_recombine_unsigned_inner].momentum_perp_subtracted >= 0) {
+						if (iterator_particle->momentum_perp_subtracted >= 0) {
 							const size_t index_column_cost =
-								nblock +
-								positive_index[*iterator_recombine_unsigned_inner];
+								nblock + positive_index[iterator_particle - _event.begin()];
 
 							_lp_problem.push_back_coefficient(
 								index_row, index_column_cost, 1);
 							index_column_max =
 								std::max(index_column_max, index_column_cost);
 						}
-					}
-					index_row++;
+						_lp_problem.push_back_coefficient(
+							index_row, index_column_block_subtract, 1);
+						index_column_max =
+							std::max(index_column_max, index_column_block_subtract);
 
-					_lp_problem.push_back_row(
-						bpmpd_problem_t::greater_equal,
-						-sum_unequalized);
-
-					_lp_problem.push_back_coefficient(
-						index_row, index_column_block, _positive_bound_scale / weight);
-
-					for (std::vector<size_t>::const_iterator iterator_recombine_unsigned_inner = iterator_recombine_unsigned_outer->begin();
-						 iterator_recombine_unsigned_inner != iterator_recombine_unsigned_outer->end();
-						 iterator_recombine_unsigned_inner++) {
-						if (_event[*iterator_recombine_unsigned_inner].momentum_perp_subtracted >= 0) {
-							const size_t index_column_cost =
-								nblock +
-								positive_index[*iterator_recombine_unsigned_inner];
+						for (std::vector<size_t>::const_iterator
+								 iterator_recombine_index_inner =
+								 iterator_recombine_index_outer->begin();
+							 iterator_recombine_index_inner !=
+								 iterator_recombine_index_outer->end();
+							 iterator_recombine_index_inner++) {
+							const size_t index_column =
+								*iterator_recombine_index_inner +
+								_ncost;
 
 							_lp_problem.push_back_coefficient(
-								index_row, index_column_cost, -1);
+								index_row, index_column, sign);
 							index_column_max =
-								std::max(index_column_max, index_column_cost);
+								std::max(index_column_max, index_column);
 						}
-					}
-					index_row++;
+						index_row++;
+
+						const size_t index_column_block =
+							nsuperblock +
+							index_pseudorapidity * nsector_azimuth +
+							index_azimuth;
+
+
+						// sum_R c_i - o_i >= -d
+						// or: d + sum_R c_i >= o_i
+						// sum_R c_i - o_i <= d
+						// or: d - sum_R c_i >= -o_i
+
+						double sum_unequalized;
+
+						sum_unequalized = 0;
+						for (std::vector<size_t>::const_iterator
+								 iterator_recombine_unsigned_inner =
+								 iterator_recombine_unsigned_outer->begin();
+							 iterator_recombine_unsigned_inner !=
+								 iterator_recombine_unsigned_outer->end();
+							 iterator_recombine_unsigned_inner++) {
+							sum_unequalized +=
+								_event[*iterator_recombine_unsigned_inner].momentum_perp_subtracted;
+						}
+						sum_unequalized = std::max(0.0, sum_unequalized);
+
+						const double weight = sum_unequalized;
+
+						if (weight > 0) {
+							_lp_problem.push_back_row(
+								bpmpd_problem_t::greater_equal,
+								sum_unequalized);
+
+							_lp_problem.push_back_coefficient(
+								index_row, index_column_block, 1.0 / weight);
+
+							for (std::vector<size_t>::const_iterator
+									 iterator_recombine_unsigned_inner =
+									 iterator_recombine_unsigned_outer->begin();
+								 iterator_recombine_unsigned_inner !=
+									 iterator_recombine_unsigned_outer->end();
+								 iterator_recombine_unsigned_inner++) {
+								if (_event[*iterator_recombine_unsigned_inner].momentum_perp_subtracted >= 0) {
+									const size_t index_column_cost =
+										nblock +
+										positive_index[*iterator_recombine_unsigned_inner];
+
+									_lp_problem.push_back_coefficient(
+										index_row, index_column_cost, 1);
+									index_column_max =
+										std::max(index_column_max, index_column_cost);
+								}
+							}
+							index_row++;
+
+							_lp_problem.push_back_row(
+								bpmpd_problem_t::greater_equal,
+								-sum_unequalized);
+
+							_lp_problem.push_back_coefficient(
+								index_row, index_column_block, _positive_bound_scale / weight);
+
+							for (std::vector<size_t>::const_iterator iterator_recombine_unsigned_inner = iterator_recombine_unsigned_outer->begin();
+								 iterator_recombine_unsigned_inner != iterator_recombine_unsigned_outer->end();
+								 iterator_recombine_unsigned_inner++) {
+								if (_event[*iterator_recombine_unsigned_inner].momentum_perp_subtracted >= 0) {
+									const size_t index_column_cost =
+										nblock +
+										positive_index[*iterator_recombine_unsigned_inner];
+
+									_lp_problem.push_back_coefficient(
+										index_row, index_column_cost, -1);
+									index_column_max =
+										std::max(index_column_max, index_column_cost);
+								}
+							}
+							index_row++;
+						}
 					}
 				}
 			}
-		}
+
+			// Epsilon that breaks the degeneracy, in the same units
+			// as the pT of the event (i.e. GeV)
+			static const double epsilon_degeneracy = 1e-2;
+
+			// Columns (variables and the objective coefficients) of
+			// the LP problem
+			//
+			// Cost variables (objective coefficient 1)
+			for (size_t i = 0; i < nsuperblock; i++) {
+				_lp_problem.push_back_column(
+					1, 0, bpmpd_problem_t::infinity);
+			}
+			for (size_t i = nsuperblock; i < nsuperblock + nstaggered_block; i++) {
+				_lp_problem.push_back_column(
+					0, 0, bpmpd_problem_t::infinity);
+			}
+			for (size_t i = nsuperblock + nstaggered_block; i < nsuperblock + 2 * nstaggered_block; i++) {
+				_lp_problem.push_back_column(
+					0, 0, bpmpd_problem_t::infinity);
+			}
+			for (size_t i = nsuperblock + 2 * nstaggered_block; i < _ncost; i++) {
+				_lp_problem.push_back_column(
+					0, 0, bpmpd_problem_t::infinity);
+			}
+			//fprintf(stderr, "%s:%d: %lu %lu\n", __FILE__, __LINE__, index_column_max, recombine_tie.size());
+			// Energy transfer coefficients t_kl (objective
+			// coefficient 0 + epsilon)
+			for (size_t i = _ncost; i <= index_column_max; i++) {
+				_lp_problem.push_back_column(
+					epsilon_degeneracy * _recombine_tie[i - _ncost],
+					0, bpmpd_problem_t::infinity);
+			}
 		}
 		void equalize(void)
 		{
@@ -2191,6 +2252,5 @@ namespace {
 	};
 
 }
-
 
 #endif

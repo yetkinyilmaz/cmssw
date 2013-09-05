@@ -44,9 +44,7 @@ process.GlobalTag.toGet.extend([ cms.PSet(record = cms.string("JetCorrectionsRec
 
 process.akVs5PFJets = process.ak5PFJets.clone(
     doPVCorrection = False,
-
-#    doPUOffsetCorr = True,    
-    doPUOffsetCorr = False,
+    doPUOffsetCorr = True,    
     subtractorName = cms.string("VoronoiSubtractor"),
 #    subtractorName = cms.string("MultipleAlgoIterator"),
 
@@ -106,8 +104,7 @@ process.akVs5PFJetAnalyzer = process.inclusiveJetAnalyzer.clone(jetTag = cms.Inp
                                                                 )
 
 
-process.p = cms.Path(
-    #process.subtract*
+process.p = cms.Path(process.subtract*
                      process.akVs5PFJets*
                      process.akPu5PFmatch*
                      process.akPu5PFparton*
