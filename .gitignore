@@ -1,2 +1,9 @@
 __init__.py
 *.pyc
+*.so
+*.pyc
+*_C.d
+CVS
+__init__.py
+*~
+*.root
