@@ -224,7 +224,7 @@ namespace {
 			for (std::vector<char *>::const_iterator iterator =
 					 _row_name.begin();
 				 iterator != _row_name.end(); iterator++) {
-				free(*iterator);
+				delete [] *iterator;
 			}
 			_row_name.clear();
 		}
@@ -313,14 +313,15 @@ namespace {
 		void push_back_row(const char constraint_sense,
 						   const double rhs)
 		{
+			_rhs.push_back(rhs);
+			_constraint_sense.push_back(constraint_sense);
+
 			static const size_t name_length = 24;
-			char name[name_length];
+			char *name = new char[name_length];
 
 			snprintf(name, name_length, "c%llu",
 					 static_cast<unsigned long long>(_rhs.size()));
-			_rhs.push_back(rhs);
-			_constraint_sense.push_back(constraint_sense);
-			_row_name.push_back(strdup(name));
+			_row_name.push_back(name);
 		}
 		void push_back_row(const std::string &constraint_sense,
 						   const double rhs)
@@ -348,15 +349,16 @@ namespace {
 							  const double lower_bound,
 							  const double upper_bound)
 		{
-			static const size_t name_length = 24;
-			char name[name_length];
-
-			snprintf(name, name_length, "x%llu",
-					 static_cast<unsigned long long>(_objective.size()));
 			_objective.push_back(objective);
 			_lower_bound.push_back(lower_bound);
 			_upper_bound.push_back(upper_bound);
-			_column_name.push_back(strdup(name));
+
+			static const size_t name_length = 24;
+			char *name = new char[name_length];
+
+			snprintf(name, name_length, "x%llu",
+					 static_cast<unsigned long long>(_objective.size()));
+			_column_name.push_back(name);
 		}
 		void push_back_coefficient(
 			const int row, const int column, const double value)
@@ -1598,6 +1600,10 @@ namespace {
 						iterator->momentum_perp_subtracted =
 							iterator->momentum.perp() -
 							density * iterator->area;
+					}
+					else {
+						iterator->momentum_perp_subtracted =
+							iterator->momentum.perp();
 					}
 			}
 		}
