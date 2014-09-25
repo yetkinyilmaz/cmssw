@@ -94,7 +94,6 @@ void HiBasicGenTest::analyze(const edm::Event& iEvent,const edm::EventSetup& iSe
     b[cbin]->Fill(ip);
   }
 
-
   // loop over particles
   HepMC::GenEvent::particle_const_iterator begin = evt->particles_begin();
   HepMC::GenEvent::particle_const_iterator end = evt->particles_end();
