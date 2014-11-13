@@ -4,9 +4,9 @@
 namespace reco { class Track; }
 namespace edm { class Event; class EventSetup; class ConsumesCollector;}
 class TrackingRecHit;
+class TrackerTopology;
 
 #include <vector>
-#include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
 
 class PixelTrackFilter {
 public:
