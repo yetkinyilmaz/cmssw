@@ -34,6 +34,9 @@
 #include "SimGeneral/MixingModule/interface/DigiAccumulatorMixModFactory.h"
 #include "SimGeneral/MixingModule/interface/PileUpEventPrincipal.h"
 
+#include <iostream>
+using namespace std;
+
 namespace edm {
 
   // Constructor
@@ -336,8 +339,10 @@ namespace edm {
     edm::Handle<CrossingFramePlaybackInfoExtended> oldFormatPlaybackInfo_H;
     bool oldFormatPlayback = false;
     if (playback_) {
+       cout<<"Yes playback!"<<endl;
       bool got = e.getByLabel(inputTagPlayback_, playbackInfo_H);
       if (!got) {
+	 cout<<"New playback missing!"<<endl;
         bool gotOld = e.getByLabel(inputTagPlayback_, oldFormatPlaybackInfo_H);
         if (!gotOld) {
           throw cms::Exception("MixingProductNotFound") << " No "
@@ -348,6 +353,8 @@ namespace edm {
         oldFormatPlayback = true;
       }
     }
+    if(oldFormatPlayback) cout<<"oldPlayback"<<endl;
+    else cout<<"newPlayback"<<endl;
 
     // source[0] is "real" pileup.  Check to see that this is what we are doing.
 
@@ -449,6 +456,8 @@ namespace edm {
 
     // setInfo swaps recordEventID, so recordEventID is useless (empty) after the call.
     playbackInfo_->setInfo(recordEventID, sizes);
+
+    cout<<"recordEventID[0].fileNameHash() : "<<recordEventID[0].fileNameHash()<<endl;
 
     // Keep track of pileup accounting...
 
