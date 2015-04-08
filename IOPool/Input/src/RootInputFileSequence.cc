@@ -578,11 +578,18 @@ namespace edm {
     }
     // Look up the logical file name in the table
     auto range = findFileForSpecifiedID_->equal_range(fileNameHash);
+
+    cout<<"Looping"<<endl;
+
     for(auto iter = range.first; iter != range.second; ++iter) {
       // Don't look in files previously opened, because those have already been searched.
+       cout<<" iter first : "<<iter->first<<endl;
+       cout<<" iter second : "<<iter->second<<endl;
 
       if(!indexesIntoFiles_[iter->second]) {
         fileIter_ = fileIterBegin_ + iter->second;
+	//	cout<<"fileIter_ : "<<fileIter_<<endl;
+
         initFile(false);
         assert(rootFile_);
         bool found = rootFile_->setEntryAtItem(run, lumi, event);
