@@ -24,6 +24,9 @@
 #include "InputFile.h"
 #include "TSystem.h"
 
+#include <iostream>
+using namespace std;
+
 namespace edm {
   RootInputFileSequence::RootInputFileSequence(
                 ParameterSet const& pset,
@@ -550,22 +553,34 @@ namespace edm {
 
   bool
   RootInputFileSequence::skipToItemInNewFile(RunNumber_t run, LuminosityBlockNumber_t lumi, EventNumber_t event, size_t fileNameHash) {
+
+     cout<<"Using fileNameHash | run : "<<run<<" | lumi : "<<lumi<<" | event : "<<event<<" | fileNameHash : "<<fileNameHash<<endl;
+
     // Look for item in files not yet opened. We have a hash of the logical file name
     assert(fileNameHash != 0U);
+
+    cout<<"fileNameHash valid"<<endl;
     // If the lookup table is not yet filled in, fill it. 
     if(!findFileForSpecifiedID_) {
+
+       cout<<"NOT findFileForSpecifiedID_"<<endl;
       // We use a multimap because there may be hash collisions (Two different LFNs could have the same hash).
       // We map the hash of the LFN to the index into the list of files.
       findFileForSpecifiedID_.reset(new std::unordered_multimap<size_t, size_t>);
       auto hasher = std::hash<std::string>();
+
       for(auto fileIter = fileIterBegin_; fileIter != fileIterEnd_; ++fileIter) {
-        findFileForSpecifiedID_->insert(std::make_pair(hasher(fileIter->logicalFileName()), fileIter - fileIterBegin_));
+	 cout<<"Iterating : "<<(fileIter - fileIterBegin_)<<" | LFN : "<<fileIter->logicalFileName()<<" | hash : "<<hasher(fileIter->logicalFileName())<<endl;
+	 findFileForSpecifiedID_->insert(std::make_pair(hasher(fileIter->logicalFileName()), fileIter - fileIterBegin_));
+
       }
+
     }
     // Look up the logical file name in the table
     auto range = findFileForSpecifiedID_->equal_range(fileNameHash);
     for(auto iter = range.first; iter != range.second; ++iter) {
       // Don't look in files previously opened, because those have already been searched.
+
       if(!indexesIntoFiles_[iter->second]) {
         fileIter_ = fileIterBegin_ + iter->second;
         initFile(false);
@@ -603,16 +618,25 @@ namespace edm {
   bool
   RootInputFileSequence::skipToItem(RunNumber_t run, LuminosityBlockNumber_t lumi, EventNumber_t event, size_t fileNameHash, bool currentFileFirst) {
     // Attempt to find item in currently open input file.
+
+     cout<<"skipToItem | run : "<<run<<" | lumi : "<<lumi<<" | event : "<<event<<" | fileNameHash : "<<fileNameHash<<" | currentFileFirst : "<<currentFileFirst<<endl;
+
     bool found = currentFileFirst && rootFile_ && rootFile_->setEntryAtItem(run, lumi, event);
+
+    if(found) cout<<"It is found!"<<endl;
     if(!found) {
+       cout<<"Not found!"<<endl;
+
       // If only one input file, give up now, to save time.
       if(currentFileFirst && rootFile_ && indexesIntoFiles_.size() == 1) {
+	 cout<<"One file only."<<endl;
         return false;
       }
       // Look for item (run/lumi/event) in files previously opened without reopening unnecessary files.
       typedef std::vector<std::shared_ptr<IndexIntoFile> >::const_iterator Iter;
       for(Iter it = indexesIntoFiles_.begin(), itEnd = indexesIntoFiles_.end(); it != itEnd; ++it) {
         if(*it && (*it)->containsItem(run, lumi, event)) {
+	   cout<<"We found it."<<endl;
           // We found it. Close the currently open file, and open the correct one.
           std::vector<FileCatalogItem>::const_iterator currentIter = fileIter_;
           fileIter_ = fileIterBegin_ + (it - indexesIntoFiles_.begin());
