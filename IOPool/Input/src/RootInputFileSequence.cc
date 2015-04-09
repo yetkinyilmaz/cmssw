@@ -554,7 +554,7 @@ namespace edm {
   bool
   RootInputFileSequence::skipToItemInNewFile(RunNumber_t run, LuminosityBlockNumber_t lumi, EventNumber_t event, size_t fileNameHash) {
 
-     cout<<"Using fileNameHash | run : "<<run<<" | lumi : "<<lumi<<" | event : "<<event<<" | fileNameHash : "<<fileNameHash<<endl;
+     cout<<"Using fileNameHash | run : "<<run<<" | lumi : "<<lumi<<" | event : "<<event<<" | fileNameHash : "<<std::hex<<fileNameHash<<endl;
 
     // Look for item in files not yet opened. We have a hash of the logical file name
     assert(fileNameHash != 0U);
@@ -570,7 +570,7 @@ namespace edm {
       auto hasher = std::hash<std::string>();
 
       for(auto fileIter = fileIterBegin_; fileIter != fileIterEnd_; ++fileIter) {
-	 cout<<"Iterating : "<<(fileIter - fileIterBegin_)<<" | LFN : "<<fileIter->logicalFileName()<<" | hash : "<<hasher(fileIter->logicalFileName())<<endl;
+	 cout<<"Iterating : "<<(fileIter - fileIterBegin_)<<" | LFN : "<<fileIter->logicalFileName()<<std::hex<<" | hash : "<<hasher(fileIter->logicalFileName())<<endl;
 	 findFileForSpecifiedID_->insert(std::make_pair(hasher(fileIter->logicalFileName()), fileIter - fileIterBegin_));
 
       }
