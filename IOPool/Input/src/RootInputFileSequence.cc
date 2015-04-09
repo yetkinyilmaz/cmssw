@@ -571,7 +571,7 @@ namespace edm {
 
       for(auto fileIter = fileIterBegin_; fileIter != fileIterEnd_; ++fileIter) {
 	 cout<<"Iterating : "<<(fileIter - fileIterBegin_)<<" | LFN : "<<fileIter->logicalFileName()<<std::hex<<" | hash : "<<hasher(fileIter->logicalFileName())<<endl;
-	 findFileForSpecifiedID_->insert(std::make_pair(hasher(fileIter->logicalFileName()), fileIter - fileIterBegin_));
+	 findFileForSpecifiedID_->insert(std::make_pair((hasher(fileIter->logicalFileName()) & 0xffffffff), fileIter - fileIterBegin_));
 
       }
 
