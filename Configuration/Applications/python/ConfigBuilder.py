@@ -707,7 +707,7 @@ class ConfigBuilder(object):
 		if not "DATAMIX" in self.stepMap.keys(): # when DATAMIX is present, pileup_input refers to pre-mixed GEN-RAW
 			if self._options.pileup_input:
 				if self._options.pileup_input.startswith('dbs:') or self._options.pileup_input.startswith('das:'):
-					mixingDict['F']=filesFromDASQuery('file dataset = %s'%(self._options.pileup_input[4:],),_options.pileup_dasoption)[0]
+					mixingDict['F']=filesFromDASQuery('file dataset = %s'%(self._options.pileup_input[4:],),self._options.pileup_dasoption)[0]
 				else:
 					mixingDict['F']=self._options.pileup_input.split(',')
 			specialization=defineMixing(mixingDict)
