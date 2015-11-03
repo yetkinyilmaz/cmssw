@@ -22,6 +22,8 @@ defaultOptions.step=''
 defaultOptions.pileup='NoPileUp'
 defaultOptions.pileup_input = None
 defaultOptions.pileup_dasoption = ''
+defaultOptions.pileup_genparticles = False
+defaultOptions.pileup_mergedtruth = False
 defaultOptions.geometry = 'SimDB'
 defaultOptions.geometryExtendedOptions = ['ExtendedGFlash','Extended','NoCastor']
 defaultOptions.magField = ''
@@ -1417,10 +1419,10 @@ class ConfigBuilder(object):
                         raise Exception("VertexSmearing type or beamspot "+self._options.beamspot+" unknown.")
 
                 if self._options.scenario == 'HeavyIons': 
-			if self._options.pileup=='HiMixGEN':
-				self.loadAndRemember("Configuration/StandardSequences/GeneratorMix_cff")
-			else:
-				self.loadAndRemember("Configuration/StandardSequences/GeneratorHI_cff")
+			self.loadAndRemember("Configuration/StandardSequences/GeneratorHI_cff")
+			if self._options.pileup_genparticles:
+				self.executeAndRemember('genParticles.doSubEvent = cms.untracked.bool(True)')
+                                self.executeAndRemember('process.genParticles.useCrossingFrame = cms.untracked.bool(True)')
 
         self.process.generation_step = cms.Path( getattr(self.process,genSeqName) )
         self.schedule.append(self.process.generation_step)

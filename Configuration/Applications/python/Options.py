@@ -211,6 +211,16 @@ expertSettings.add_option("--pileup_dasoption",
                           default="",
                           dest="pileup_dasoption")
 
+expertSettings.add_option("--pileup_genparticles",
+                          help="",
+                          default=False,
+                          dest="pileup_genparticles")
+
+expertSettings.add_option("--pileup_mergedtruth",
+                          help="Additional option for DAS query of pile up",
+                          default=False,
+                          dest="pileup_mergedtruth")
+
 expertSettings.add_option("--datamix",
                   help="What datamix config to use. Default=DataOnSim.",
                   default=defaultOptions.datamix,
