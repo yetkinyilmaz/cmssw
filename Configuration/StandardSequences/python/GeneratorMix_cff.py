@@ -10,3 +10,4 @@ genParticles.abortOnUnknownPDGCode = cms.untracked.bool(False)
 
 hiGenJets = cms.Sequence(genParticlesForJets*hiRecoGenJets)
 pgen = cms.Sequence(cms.SequencePlaceholder("randomEngineStateProducer")+cms.SequencePlaceholder("mix")+VertexSmearing+genParticles+hiGenJets)
+

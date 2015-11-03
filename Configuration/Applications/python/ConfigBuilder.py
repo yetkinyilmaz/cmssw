@@ -1472,9 +1472,7 @@ class ConfigBuilder(object):
 		else:
 			self._options.inputEventContent=self._options.inputEventContent+',REGEN'
 
-	print "I'm here."
 	if self._options.pileup_genparticles:
-		print "and also here"
 		self.executeAndRemember('process.genParticles.doSubEvent = cms.untracked.bool(True)')
 		self.executeAndRemember('process.genParticles.useCrossingFrame = cms.untracked.bool(True)')
 
