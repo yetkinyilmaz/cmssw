@@ -1420,9 +1420,6 @@ class ConfigBuilder(object):
 
                 if self._options.scenario == 'HeavyIons': 
 			self.loadAndRemember("Configuration/StandardSequences/GeneratorHI_cff")
-			if self._options.pileup_genparticles:
-				self.executeAndRemember('genParticles.doSubEvent = cms.untracked.bool(True)')
-                                self.executeAndRemember('process.genParticles.useCrossingFrame = cms.untracked.bool(True)')
 
         self.process.generation_step = cms.Path( getattr(self.process,genSeqName) )
         self.schedule.append(self.process.generation_step)
@@ -1472,6 +1469,11 @@ class ConfigBuilder(object):
 		else:
 			self._options.inputEventContent=self._options.inputEventContent+',REGEN'
 
+	print "I'm here."
+	if self._options.pileup_genparticles:
+		print "and also here"
+		self.executeAndRemember('process.genParticles.doSubEvent = cms.untracked.bool(True)')
+		self.executeAndRemember('process.genParticles.useCrossingFrame = cms.untracked.bool(True)')
 
 	self.scheduleSequence(sequence.split('.')[-1],'digitisation_step')
         return
