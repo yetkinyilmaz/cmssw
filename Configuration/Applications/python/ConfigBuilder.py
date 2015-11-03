@@ -1418,8 +1418,11 @@ class ConfigBuilder(object):
                 except ImportError:
                         raise Exception("VertexSmearing type or beamspot "+self._options.beamspot+" unknown.")
 
-                if self._options.scenario == 'HeavyIons': 
-			self.loadAndRemember("Configuration/StandardSequences/GeneratorHI_cff")
+		if self._options.scenario == 'HeavyIons': 
+			if self._options.pileup=='HiMixGEN':
+				self.loadAndRemember("Configuration/StandardSequences/GeneratorMix_cff")
+			else:
+				self.loadAndRemember("Configuration/StandardSequences/GeneratorHI_cff")
 
         self.process.generation_step = cms.Path( getattr(self.process,genSeqName) )
         self.schedule.append(self.process.generation_step)
@@ -2213,7 +2216,8 @@ class ConfigBuilder(object):
         # special treatment in case of production filter sequence 2/2
         if self.productionFilterSequence:
                 self.pythonCfgCode +='# filter all path with the production filter sequence\n'
-                self.pythonCfgCode +='for path in process.paths:\n'
+                self.pythonCfgCode +='for path in process.paths:        getattr(process,path)._seq = process.ProductionFilterSequence * getattr(process,path)._seq
+\n'
 		if len(self.conditionalPaths):
 			self.pythonCfgCode +='\tif not path in %s: continue\n'%str(self.conditionalPaths)
                 if len(self.excludedPaths):
