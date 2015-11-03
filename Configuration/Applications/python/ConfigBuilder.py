@@ -2216,8 +2216,8 @@ class ConfigBuilder(object):
         # special treatment in case of production filter sequence 2/2
         if self.productionFilterSequence:
                 self.pythonCfgCode +='# filter all path with the production filter sequence\n'
-                self.pythonCfgCode +='for path in process.paths:        getattr(process,path)._seq = process.ProductionFilterSequence * getattr(process,path)._seq
-\n'
+		self.pythonCfgCode +='for path in process.paths:\n'
+
 		if len(self.conditionalPaths):
 			self.pythonCfgCode +='\tif not path in %s: continue\n'%str(self.conditionalPaths)
                 if len(self.excludedPaths):
