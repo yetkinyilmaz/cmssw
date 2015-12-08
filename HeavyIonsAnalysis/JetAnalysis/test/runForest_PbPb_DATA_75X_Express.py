@@ -263,7 +263,7 @@ HIFormat = False
 UseGenPlusSim = False
 VtxLabel = "hiSelectedVertex"
 TrkLabel = "hiGeneralTracks"
-from Bfinder.finderMaker.finderMaker_75X_cff import finderMaker_75X
+from HeavyIonsAnalysis.Bfinder.finderMaker_75X_cff import finderMaker_75X
 finderMaker_75X(process, AddCaloMuon, runOnMC, HIFormat, UseGenPlusSim, VtxLabel, TrkLabel)
 
 
