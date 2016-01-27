@@ -218,7 +218,8 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    double mm = 0.1;
 
-
+   piles.nmix = 0;
+   piles.nbx = 0;
 
    piles.n = 0;
    piles.nbkg = 0;
