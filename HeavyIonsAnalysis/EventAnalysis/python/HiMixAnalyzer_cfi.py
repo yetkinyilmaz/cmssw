@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 mixAnalyzer = cms.EDAnalyzer('HiMixValidation',
                              doHIST = cms.untracked.bool(True),
+                             doMIX = cms.untracked.bool(True),
                              doGEN = cms.untracked.bool(True),
                              doSIM = cms.untracked.bool(True),
                              doRAW = cms.untracked.bool(False),

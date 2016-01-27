@@ -163,6 +163,7 @@ class HiMixValidation : public edm::EDAnalyzer {
    double rMatch2;
    bool useCF_;
 
+   bool doMIX_;
    bool doGEN_;
    bool doSIM_;
    bool doRAW_;
@@ -192,6 +193,7 @@ HiMixValidation::HiMixValidation(const edm::ParameterSet& iConfig)
    muonPtMin = iConfig.getUntrackedParameter<double>("muonPtMin",3.);
    electronPtMin = iConfig.getUntrackedParameter<double>("electronPtMin",3.);
    
+   doMIX_ = iConfig.getUntrackedParameter<bool>("doMIX",true);
    doGEN_ = iConfig.getUntrackedParameter<bool>("doGEN",true);
    doSIM_ = iConfig.getUntrackedParameter<bool>("doSIM",true);
    doRAW_ = iConfig.getUntrackedParameter<bool>("doRAW",true);
@@ -217,16 +219,10 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    double mm = 0.1;
 
 
-   Handle<CrossingFramePlaybackInfoNew> playback;
-   iEvent.getByLabel(playbackSrc_,playback);
 
    piles.n = 0;
    piles.nbkg = 0;
    piles.npart = 0;
-
-
-   piles.nmix = playback->eventInfo_.size()+1;
-   piles.nbx = playback->nBcrossings_;
 
    piles.event[0] = iEvent.id().event();
    piles.run[0] = iEvent.id().run();
@@ -238,6 +234,14 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    int bx = 0;
    int sbx = 0;
+
+
+   if(doMIX_){
+   Handle<CrossingFramePlaybackInfoNew> playback;
+   iEvent.getByLabel(playbackSrc_,playback);
+
+   piles.nmix = playback->eventInfo_.size()+1;
+   piles.nbx = playback->nBcrossings_;
 
    for(unsigned int i = 0; i < playback->eventInfo_.size(); ++i){
 
@@ -255,7 +259,7 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       piles.file[i+1] = playback->eventInfo_[i].fileNameHash();
 
    }
-
+   }
 
    double zgen[2]={-29,-29};
    Handle<GenHIEvent> higen;
