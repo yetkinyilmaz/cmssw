@@ -59,6 +59,9 @@ struct EventArray{
 
    int nmix;
    int nbx;
+   int n;
+   int nbkg;
+   int npart;
 
    ULong64_t event[100];
    ULong64_t lumi[100];
@@ -217,6 +220,11 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    Handle<CrossingFramePlaybackInfoNew> playback;
    iEvent.getByLabel(playbackSrc_,playback);
 
+   piles.n = 0;
+   piles.nbkg = 0;
+   piles.npart = 0;
+
+
    piles.nmix = playback->eventInfo_.size()+1;
    piles.nbx = playback->nBcrossings_;
 
@@ -249,19 +257,20 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }
 
 
-   Handle<GenHIEvent> higen;
-   iEvent.getByLabel(genHIsrc_,higen);
-   double npart = higen->Npart();
-
-   Handle<reco::GenParticleCollection> parts;
-   iEvent.getByLabel(genParticleSrc_,parts);
-   cout<<"x1"<<endl;
    double zgen[2]={-29,-29};
-   cout<<"x2"<<endl;
+   Handle<GenHIEvent> higen;
+   Handle<reco::GenParticleCollection> parts;
 
 
+   if(doRAW_){
+     iEvent.getByLabel(genHIsrc_,higen);
+     piles.npart = higen->Npart();
+   }
 
 
+   if(doGEN_){
+
+     iEvent.getByLabel(genParticleSrc_,parts);
 
    for(UInt_t i = 0; i < parts->size(); ++i){
       const reco::GenParticle& p = (*parts)[i];
@@ -276,6 +285,10 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       }
 
       if (p.status()!=1) continue;
+
+      piles.n++;
+      if(sube != 0) piles.nbkg++;
+
       int pdg = abs(p.pdgId());
       double eta = p.eta();
       double pt = p.pt();
@@ -294,7 +307,7 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
          if(pdg == 11 && pt > electronPtMin) hGenElectronEtaBkg->Fill(eta);
          if(pdg == 13 && pt > muonPtMin) hGenMuonEtaBkg->Fill(eta);
 
-	 if(npart == 2){
+	 if(piles.npart == 2){
 	    if(p.charge() != 0 && pt > particlePtMin) hGenParticleEtaBkgNpart2->Fill(eta);
 	    if(pdg == 22 && pt > photonPtMin) hGenPhotonEtaBkgNpart2->Fill(eta);
 	    if(pdg == 11 && pt > electronPtMin) hGenElectronEtaBkgNpart2->Fill(eta);
@@ -307,6 +320,8 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       if(pdg == 13 && pt > muonPtMin) hGenMuonEtaMixed->Fill(eta);
       }
    }
+   }
+
    cout<<"x3"<<endl;
 
    if(doHIST_) hGenVertices->Fill(zgen[0],zgen[1]);
@@ -314,9 +329,11 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    edm::Handle<reco::GenJetCollection> genjets;
    iEvent.getByLabel(genJetSrc_,genjets);
+
    edm::Handle<reco::JetView> jets;
+   if(doRECO_){
    iEvent.getByLabel(jetSrc_,jets);
-   cout<<"x5"<<endl;
+   }
 
    for(UInt_t i = 0; i < genjets->size(); ++i){
       const reco::GenJet& p = (*genjets)[i];
@@ -324,11 +341,13 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       double ptmatch = 0;
       if(pt < jetPtMin) continue;
 
-      for(UInt_t j = 0; j < jets->size(); ++j){
-	 if(rMatch2 > reco::deltaR2((*genjets)[i],(*jets)[j])){
+      if(doRECO_){
+	for(UInt_t j = 0; j < jets->size(); ++j){
+	  if(rMatch2 > reco::deltaR2((*genjets)[i],(*jets)[j])){
 	    double recopt = (*jets)[j].pt();
 	    if(recopt>ptmatch) ptmatch = recopt; 
-	 }
+	  }
+	}
       }
 
       int sube = p.getGenConstituent(0)->collisionId();
@@ -341,7 +360,7 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	 hGenJetEtaBkg->Fill(eta);
          hJetResponseBkg->Fill(pt,ptmatch);
 
-	 if(npart == 2){
+	 if(piles.npart == 2){
 	    hGenJetEtaBkgNpart2->Fill(eta);
 	 }
       }
@@ -439,6 +458,9 @@ HiMixValidation::beginJob()
 
    t->Branch("nmix",&piles.nmix,"nmix/I");
    t->Branch("nbx",&piles.nbx,"nbx/I");
+   t->Branch("n",&piles.n,"n/I");
+   t->Branch("nbkg",&piles.nbkg,"nbkg/I");
+   t->Branch("npart",&piles.npart,"npart/I");
 
    t->Branch("xVtx",piles.xVtx,"xVtx[nmix]/F");
    t->Branch("yVtx",piles.yVtx,"yVtx[nmix]/F");
@@ -450,6 +472,10 @@ HiMixValidation::beginJob()
    t->Branch("lumi",piles.lumi,"lumi[nmix]/l");
    t->Branch("run",piles.run,"run[nmix]/l");
    t->Branch("file",piles.file,"file[nmix]/l");
+
+
+
+
 
    if(doHIST_){
 
