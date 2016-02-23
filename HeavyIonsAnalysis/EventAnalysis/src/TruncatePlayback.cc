@@ -111,7 +111,7 @@ TruncatePlayback::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    std::unique_ptr<CrossingFramePlaybackInfoNew> pOut(new CrossingFramePlaybackInfoNew(0,0,1));
 
    for(int i = 0; i < nPU_ && i < pIn->eventInfo_.size(); ++i){
-     pOut->eventInfo_.push_back(pIn->eventInfo_[i]);
+     pOut->eventInfo_.push_back(pIn->eventInfo_[pIn->eventInfo_.size()-i-1]);
    }
 
    iEvent.put(std::move(pOut));
