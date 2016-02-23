@@ -55,6 +55,8 @@ class TruncatePlayback : public edm::stream::EDProducer<> {
       //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
       // ----------member data ---------------------------
+
+  int nPU_;
 };
 
 //
@@ -72,15 +74,10 @@ class TruncatePlayback : public edm::stream::EDProducer<> {
 TruncatePlayback::TruncatePlayback(const edm::ParameterSet& iConfig)
 {
    //register your products
-/* Examples
-   produces<ExampleData2>();
 
-   //if do put with a label
-   produces<ExampleData2>("label");
- 
-   //if you want to put into the Run
-   produces<ExampleData2,InRun>();
-*/
+  //  nPU_ = iConfig.getParameter<int>("nPU");
+
+   produces<CrossingFramePlaybackInfoNew>();
    //now do what ever other initialization is needed
   
 }
