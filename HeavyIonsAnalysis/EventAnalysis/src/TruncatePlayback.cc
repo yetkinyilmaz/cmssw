@@ -75,7 +75,7 @@ TruncatePlayback::TruncatePlayback(const edm::ParameterSet& iConfig)
 {
    //register your products
 
-  //  nPU_ = iConfig.getParameter<int>("nPU");
+  nPU_ = iConfig.getParameter<int>("nPU");
 
    produces<CrossingFramePlaybackInfoNew>();
    //now do what ever other initialization is needed
@@ -110,9 +110,9 @@ TruncatePlayback::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    // is put into the Event
    std::unique_ptr<CrossingFramePlaybackInfoNew> pOut(new CrossingFramePlaybackInfoNew(0,0,1));
 
-
-   pOut->eventInfo_.push_back(pIn->eventInfo_[0]);
-
+   for(int i = 0; i < nPU_ && i < pIn->eventInfo_.size(); ++i){
+     pOut->eventInfo_.push_back(pIn->eventInfo_[i]);
+   }
 
    iEvent.put(std::move(pOut));
 
