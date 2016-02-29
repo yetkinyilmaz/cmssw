@@ -19,6 +19,7 @@
 
 // system include files
 #include <memory>
+#include <iostream>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -31,6 +32,8 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/StreamID.h"
+
+using namespace std;
 
 
 //
@@ -115,7 +118,6 @@ TruncatePlayback::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
 
    iEvent.put(std::move(pOut));
-
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------

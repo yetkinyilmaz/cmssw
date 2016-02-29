@@ -62,7 +62,7 @@ namespace edm {
       labelPlayback = ps_mix.getParameter<std::string>("@module_label");
     }
     if (playback_) {
-      inputTagPlayback_ = InputTag(labelPlayback, "", edm::InputTag::kSkipCurrentProcess);
+      inputTagPlayback_ = InputTag(labelPlayback, "");
       consumes<CrossingFramePlaybackInfoNew>(inputTagPlayback_);
     }
 
