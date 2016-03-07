@@ -11,6 +11,7 @@
 <use name="DataFormats/Common"/>
 <use name="SimDataFormats/HiGenData"/>
 <use name="SimDataFormats/GeneratorProducts"/>
+<use name="SimDataFormats/CrossingFrame"/>
 <use name="FWCore/Common"/>
 <use name="DataFormats/HLTReco"/>
 <use name="HLTrigger/HLTcore"/>

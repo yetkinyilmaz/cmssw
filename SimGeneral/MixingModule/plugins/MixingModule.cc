@@ -35,6 +35,11 @@
 #include "SimGeneral/MixingModule/interface/PileUpEventPrincipal.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
+#include <iostream>
+using namespace std;
+
+
+
 namespace edm {
 
   // Constructor
@@ -62,7 +67,7 @@ namespace edm {
       labelPlayback = ps_mix.getParameter<std::string>("@module_label");
     }
     if (playback_) {
-      inputTagPlayback_ = InputTag(labelPlayback, "", edm::InputTag::kSkipCurrentProcess);
+      inputTagPlayback_ = InputTag(labelPlayback, "");
       consumes<CrossingFramePlaybackInfoNew>(inputTagPlayback_);
     }
 
@@ -332,6 +337,12 @@ namespace edm {
   void MixingModule::doPileUp(edm::Event &e, const edm::EventSetup& setup) {
     using namespace std::placeholders;
 
+    cout<<"====================================="<<endl;
+    cout<<""<<endl;
+    cout<<"NEW EVENT doPileUp ------------------"<<endl;
+
+
+
     // Don't allocate because PileUp will do it for us.
     std::vector<edm::SecondaryEventIDAndFileInfo> recordEventID;
     std::vector<size_t> sizes;
@@ -376,6 +387,9 @@ namespace edm {
     //}
 
     for (int bunchIdx = minBunch_; bunchIdx <= maxBunch_; ++bunchIdx) {
+
+      cout<<"-----"<<endl;
+      cout<<"doing bunchIdx : "<<bunchIdx<<endl;
       for (size_t setBcrIdx=0; setBcrIdx<workers_.size(); ++setBcrIdx) {
         workers_[setBcrIdx]->setBcrOffset();
       }
@@ -388,6 +402,8 @@ namespace edm {
                                                                         // new PileUp objects for each
                                                                         // source for each event?
                                                                         // Why?
+
+	cout<<"doing readSrcIdx : "<<readSrcIdx<<endl;
         for (size_t setSrcIdx=0; setSrcIdx<workers_.size(); ++setSrcIdx) {
           workers_[setSrcIdx]->setSourceOffset(readSrcIdx);
         }
@@ -396,6 +412,8 @@ namespace edm {
           sizes.push_back(0U);
           if(playback_ && !oldFormatPlayback) {
             playbackCounter += playbackInfo_H->getNumberOfEvents(bunchIdx, readSrcIdx);
+	    cout<<"playbackCounter incremented by "<<playbackInfo_H->getNumberOfEvents(bunchIdx, readSrcIdx)<<endl;
+	    cout<<"now it is : "<<playbackCounter<<endl;
           }
           continue;
         }
@@ -413,7 +431,9 @@ namespace edm {
                                                             _2, vertexOffset, std::ref(setup), e.streamID()), numberOfEvents, e.streamID());
         } else if(oldFormatPlayback) {
           std::vector<edm::EventID> const& playEventID = oldFormatPlaybackInfo_H->getStartEventId(readSrcIdx, bunchIdx);
+	  cout<<"------------------"<<endl;
           size_t numberOfEvents = playEventID.size();
+	  cout<<"numberOfEvents : "<<numberOfEvents<<endl;
           if(readSrcIdx == 0) {
             PileupList.push_back(numberOfEvents);
             TrueNumInteractions_.push_back(numberOfEvents);
@@ -426,7 +446,18 @@ namespace edm {
             std::bind(&MixingModule::pileAllWorkers, std::ref(*this), _1, mcc, bunchIdx,
                         _2, vertexOffset, std::ref(setup), e.streamID()));
         } else {
+          cout<<"the ELSE ------------------"<<endl;
+
+	  cout<<"components --- "<<endl;
+	  cout<<"bunchIdx : "<<bunchIdx<<endl;
+	  cout<<"sourceNumber : "<<readSrcIdx<<endl;
+	  cout<<"playback.maxNbSources_ : "<<playbackInfo_H->maxNbSources_<<endl;
+	  cout<<"playback.minBunch_ : "<<playbackInfo_H->minBunch_<<endl;
+
           size_t numberOfEvents = playbackInfo_H->getNumberOfEvents(bunchIdx, readSrcIdx);
+
+	  cout<<"numberOfEvents : "<<numberOfEvents<<endl;
+	  cout<<"sizes[0] is actually : "<<(playbackInfo_H->sizes_)[0]<<endl;
           if(readSrcIdx == 0) {
             PileupList.push_back(numberOfEvents);
             TrueNumInteractions_.push_back(numberOfEvents);
@@ -439,6 +470,7 @@ namespace edm {
             begin, end, recordEventID,
             std::bind(&MixingModule::pileAllWorkers, std::ref(*this), _1, mcc, bunchIdx,
                         _2, vertexOffset, std::ref(setup), e.streamID()));
+	  cout<<"done one"<<endl;
 	}
       }
       for(Accumulators::const_iterator accItr = digiAccumulators_.begin(), accEnd = digiAccumulators_.end(); accItr != accEnd; ++accItr) {
