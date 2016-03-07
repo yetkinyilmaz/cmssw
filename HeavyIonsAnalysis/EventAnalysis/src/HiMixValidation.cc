@@ -246,6 +246,7 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       piles.bx[i+1] = playback->minBunch_ + bx;
       piles.file[i+1] = playback->eventInfo_[i].fileNameHash();
 
+
    }
 
 
@@ -365,36 +366,39 @@ HiMixValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       const HepMC::GenEvent* inev = 0;
       cout<<"x10"<<endl;
       double zcf[2]={-29,-29};
-      if(mix.size() != 2){
+      if(mix.size() < 2){
 	 cout<<"More or less than 2 sub-events, mixing seems to have failed! Size : "<<mix.size()<<endl;
       }else{
-	 for(int i = 0; i < 2; ++i){
-	    cout<<"i "<<i<<endl;
-	    const edm::HepMCProduct& bkg = mix.getObject(i);
-	    cout<<"a"<<endl;
-	    inev = bkg.GetEvent();
-	    cout<<"b"<<endl;
-	    
-	    genvtx = inev->signal_process_vertex();
-	    cout<<"c"<<endl;
-	    
-	    if(!genvtx){
-	       cout<<"No Signal Process Vertex!"<<endl;
-	       HepMC::GenEvent::particle_const_iterator pt=inev->particles_begin();
-	       HepMC::GenEvent::particle_const_iterator ptend=inev->particles_end();
-	       while(!genvtx || ( genvtx->particles_in_size() == 1 && pt != ptend ) ){
-		  if(pt == ptend) cout<<"End reached, No Gen Vertex!"<<endl;
-		  genvtx = (*pt)->production_vertex();
-		  ++pt;
-	       }
-	       if(!genvtx) cout<<"No Gen Vertex!"<<endl;
+	for(int i = 0; i < mix.size(); ++i){
+	  cout<<"i "<<i<<endl;
+	  const edm::HepMCProduct& bkg = mix.getObject(i);
+	  cout<<"a"<<endl;
+	  inev = bkg.GetEvent();
+	  cout<<"b"<<endl;
+	  
+	  genvtx = inev->signal_process_vertex();
+	  cout<<"c"<<endl;
+	  
+	  if(!genvtx){
+	    cout<<"No Signal Process Vertex!"<<endl;
+	    HepMC::GenEvent::particle_const_iterator pt=inev->particles_begin();
+	    HepMC::GenEvent::particle_const_iterator ptend=inev->particles_end();
+	    while(!genvtx || ( genvtx->particles_in_size() == 1 && pt != ptend ) ){
+	      if(pt == ptend) cout<<"End reached, No Gen Vertex!"<<endl;
+	      genvtx = (*pt)->production_vertex();
+	      ++pt;
 	    }
-	    zcf[i] = genvtx->position().z()*mm;
-	    cout<<"z : "<<zcf[i]<<endl;
-	    cout<<"---"<<endl;
-	 }
+	    if(!genvtx) cout<<"No Gen Vertex!"<<endl;
+	  }
+	  zcf[i] = genvtx->position().z()*mm;
+	  piles.xVtx[i] = genvtx->position().x()*mm;
+	  piles.yVtx[i] = genvtx->position().y()*mm;
+	  piles.zVtx[i] = genvtx->position().z()*mm;
+	  cout<<"z : "<<zcf[i]<<endl;
+	  cout<<"---"<<endl;
+	}
       }
-
+      
       hGenVerticesCF->Fill(zcf[0],zcf[1]);
    }
 

@@ -1,20 +1,25 @@
 import FWCore.ParameterSet.Config as cms
 
-from RecoHI.HiJetAlgos.HiSignalParticleProducer_cfi import *
 from HeavyIonsAnalysis.JetAnalysis.jets.HiReRecoJets_HI_cff import *
 from RecoHI.HiJetAlgos.HiGenJets_cff import *
 from RecoJets.Configuration.GenJetParticles_cff import *
 from Configuration.StandardSequences.ReconstructionHeavyIons_cff import voronoiBackgroundPF, voronoiBackgroundCalo
 
-genParticlesForJets.src = "signalGenParticles"
+
+ak3HiGenJets.signalOnly = False
+ak4HiGenJets.signalOnly = False
+
+from RecoHI.HiJetAlgos.HiGenCleaner_cff import heavyIonCleanedGenJets
+
+ak3HiCleanedGenJets = heavyIonCleanedGenJets.clone(src = "ak3HiGenJets")
+ak4HiCleanedGenJets = heavyIonCleanedGenJets.clone(src = "ak4HiGenJets")
 
 akHiGenJets = cms.Sequence(
-    signalGenParticles +
     genParticlesForJets +
-    #ak2HiGenJets +
     ak3HiGenJets +
-    ak4HiGenJets #+
-    #ak5HiGenJets
+    ak4HiGenJets +
+    ak3HiCleanedGenJets +
+    ak4HiCleanedGenJets     
 )
 
 
@@ -38,7 +43,7 @@ from HeavyIonsAnalysis.JetAnalysis.jets.akPu4PFJetSequence_PbPb_mc_cff import *
 #from HeavyIonsAnalysis.JetAnalysis.jets.akVs5PFJetSequence_PbPb_mc_cff import *
 #from HeavyIonsAnalysis.JetAnalysis.jets.akPu5PFJetSequence_PbPb_mc_cff import *
 from HeavyIonsAnalysis.JetAnalysis.makePartons_cff import *
-myPartons.src = 'signalGenParticles'
+from RecoHI.HiJetAlgos.HiGenCleaner_cff import hiPartons
 
 highPurityTracks = cms.EDFilter("TrackSelector",
                                 src = cms.InputTag("hiGeneralTracks"),
@@ -74,6 +79,7 @@ jetSequences = cms.Sequence(
     #akVs5PFJets +
 
     makePartons +
+    hiPartons +
     highPurityTracks +
     offlinePrimaryVertices +
 

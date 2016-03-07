@@ -4,6 +4,6 @@ from HeavyIonsAnalysis.EventAnalysis.HiMixAnalyzer_cfi import *
 
 mixAnalyzer.doRECO = True
 mixAnalyzer.jetSrc = cms.untracked.InputTag('akPu4CaloJets')
-
+mixAnalyzer.useCF = True
 
 

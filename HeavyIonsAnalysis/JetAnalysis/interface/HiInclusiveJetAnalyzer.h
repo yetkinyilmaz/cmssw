@@ -78,6 +78,9 @@ private:
   math::XYZPoint getPosition(const DetId &id, reco::Vertex::Point vtx = reco::Vertex::Point(0,0,0));
   int TaggedJet(reco::Jet calojet, edm::Handle<reco::JetTagCollection > jetTags );
 
+  int findMatchedParton(float eta, float phi, float maxDr, edm::Handle<reco::GenParticleCollection > genparts, int partonFlavor);
+  int getFlavorProcess(int index, edm::Handle<reco::GenParticleCollection > genparts);
+
   // edm::InputTag   jetTag_, vtxTag_, genjetTag_, eventInfoTag_, L1gtReadout_, pfCandidateLabel_, trackTag_, matchTag_;
   edm::InputTag   jetTagLabel_;
   edm::EDGetTokenT<std::vector<reco::Vertex> >         vtxTag_;
@@ -86,6 +89,8 @@ private:
   edm::EDGetTokenT<reco::JetView>              matchTag_;
   edm::EDGetTokenT<pat::JetCollection>         matchTagPat_;
   edm::EDGetTokenT<reco::PFCandidateCollection>         pfCandidateLabel_;
+  edm::EDGetTokenT<reco::MuonCollection>         muonLabel_;
+  edm::EDGetTokenT<reco::GsfElectronCollection>         gsfElectronLabel_;
   edm::EDGetTokenT<reco::TrackCollection>         trackTag_;
   edm::EDGetTokenT<reco::GenParticleCollection>         genParticleSrc_;
   edm::EDGetTokenT<std::vector<reco::GenJet> >         genjetTag_;
@@ -222,9 +227,21 @@ private:
     float eSum[MAXJETS];
     int eN[MAXJETS];
 
+    float eMaxEoverP[MAXJETS];
+    int eMaxNbrems[MAXJETS];
+    float eMaxFbremSC[MAXJETS];
+    float eMaxFbremTRK[MAXJETS];
+
     float muMax[MAXJETS];
     float muSum[MAXJETS];
     int muN[MAXJETS];
+
+    float muMaxGBL[MAXJETS];
+    float muMaxTRK[MAXJETS];
+    float muMaxSTA[MAXJETS];
+    float muMaxErrGBL[MAXJETS];
+    float muMaxErrTRK[MAXJETS];
+    float muMaxErrSTA[MAXJETS];
 
     float genChargedSum[MAXJETS];
     float genHardSum[MAXJETS];
@@ -306,6 +323,9 @@ private:
     float svtxpt[MAXJETS];
     float svtxmcorr[MAXJETS];
     float svtxnormchi2[MAXJETS];
+    float svtxFlx[MAXJETS];
+    float svtxFly[MAXJETS];
+    float svtxFlz[MAXJETS];
 
     int nIPtrk[MAXJETS];
     int nselIPtrk[MAXJETS];
@@ -352,8 +372,10 @@ private:
     float refparton_pt[MAXJETS];
     int refparton_flavor[MAXJETS];
     int refparton_flavorForB[MAXJETS];
+    int refparton_flavorProcess[MAXJETS];
 
     float pthat;
+    int bProdCode, cProdCode;
     int beamId1, beamId2;
     int ngen;
     int genmatchindex[MAXJETS];

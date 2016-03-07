@@ -8,7 +8,7 @@ do
         do
             for sub in Vs Pu NONE
             do
-                for radius in 1 2 3 4 5 6
+                for radius in 3 4 5
                 do
                     for object in PF Calo
                     do
@@ -21,10 +21,11 @@ do
                         ismc="False"
                         corrlabel="_offline"
                         domatch="True"
-                        genparticles="genParticles"
+                        genparticles="signalGenParticles"
                         tracks="hiGeneralTracks"
 			vertex="offlinePrimaryVertices"
                         pflow="particleFlowTmp"
+                        electron="gedGsfElectronsTmp"
                         domatch="False"
 			doTower="True"
                         match=""
@@ -38,6 +39,7 @@ do
 			    vertex="offlinePrimaryVertices"
                             genparticles="genParticles"
                             pflow="particleFlow"
+                            electron="gedGsfElectrons"
 			    doTower="False"
 			    if [ $sample == "data" ] && [ $sub == "NONE" ] && [ $radius == 4 ] && [ $object == "PF" ]; then
 				jetcorrectionlevels="\'L2Relative\',\'L3Absolute\',\'L2L3Residual\'"
@@ -52,11 +54,12 @@ do
                             genjets="GenJets"
                         fi
 
-			if [ $sub == "Pu" ]; then
-			    corrname=`echo ${algo} | sed 's/\(.*\)/\U\1/'`${sub}${radius}${object}${corrlabel}
-			else 
-			    corrname=`echo ${algo} | sed 's/\(.*\)/\U\1/'`${radius}${object}${corrlabel}
-			fi
+			# use standard corrections for all -Matt
+			#if [ $sub == "Pu" ]; then
+			#corrname=`echo ${algo} | sed 's/\(.*\)/\U\1/'`${sub}${radius}${object}${corrlabel}
+			#else 
+			corrname=`echo ${algo} | sed 's/\(.*\)/\U\1/'`${radius}${object}${corrlabel}
+			#fi
 			
                         cat templateSequence_bTag_cff.py.txt \
                             | sed "s/ALGO_/$algo/g" \
@@ -72,6 +75,7 @@ do
                             | sed "s/TRACKS/$tracks/g" \
                             | sed "s/VERTEX/$vertex/g" \
                             | sed "s/PARTICLEFLOW/$pflow/g" \
+                            | sed "s/ELECTRON/$electron/g" \
                             | sed "s/DOMATCH/$domatch/g" \
                             | sed "s/EVENTINFOTAG/$eventinfotag/g" \
 			    | sed "s/JETCORRECTIONLEVELS/$jetcorrectionlevels/g" \
@@ -96,10 +100,10 @@ echo "hiGenJets = cms.Sequence(" >> HiGenJets_cff.py
 
 for algo in ak
 do
-    for radius in 1 2 3 4 5 6
+    for radius in 3 4 5
     do
 	echo "$algo${radius}HiGenJets" >> HiGenJets_cff.py
-	if [ $radius -ne 6 ]; then
+	if [ $radius -ne 5 ]; then
 	    echo "+" >> HiGenJets_cff.py
 	else
 	    echo ")" >> HiGenJets_cff.py

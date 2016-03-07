@@ -72,7 +72,7 @@ HiInclusiveJetAnalyzer::HiInclusiveJetAnalyzer(const edm::ParameterSet& iConfig)
 
   rParam = iConfig.getParameter<double>("rParam");
   hardPtMin_ = iConfig.getUntrackedParameter<double>("hardPtMin",4);
-  jetPtMin_ = iConfig.getUntrackedParameter<double>("jetPtMin",10);
+  jetPtMin_ = iConfig.getUntrackedParameter<double>("jetPtMin",20);
 
   if(isMC_){
     genjetTag_ = consumes<vector<reco::GenJet> > (iConfig.getParameter<InputTag>("genjetTag"));
@@ -91,6 +91,8 @@ HiInclusiveJetAnalyzer::HiInclusiveJetAnalyzer(const edm::ParameterSet& iConfig)
   skipCorrections_  = iConfig.getUntrackedParameter<bool>("skipCorrections",false);
 
   pfCandidateLabel_ = consumes<reco::PFCandidateCollection> (iConfig.getUntrackedParameter<edm::InputTag>("pfCandidateLabel",edm::InputTag("particleFlowTmp")));
+  muonLabel_ = consumes<reco::MuonCollection> (iConfig.getUntrackedParameter<edm::InputTag>("muonLabel",edm::InputTag("muons")));
+  gsfElectronLabel_ = consumes<reco::GsfElectronCollection> (iConfig.getParameter<edm::InputTag>("gsfElectronLabel"));
 
   doTower = iConfig.getUntrackedParameter<bool>("doTower",false);
   if(doTower){
@@ -228,9 +230,22 @@ HiInclusiveJetAnalyzer::beginJob() {
     t->Branch("eSum", jets_.eSum,"eSum[nref]/F");
     t->Branch("eN", jets_.eN,"eN[nref]/I");
 
+    t->Branch("eMaxEoverP", jets_.eMaxEoverP,"eMaxEoverP[nref]/F");
+    t->Branch("eMaxNbrems", jets_.eMaxNbrems,"eMaxNbrems[nref]/I");
+    t->Branch("eMaxFbremSC", jets_.eMaxFbremSC,"eMaxFbremSC[nref]/F");
+    t->Branch("eMaxFbremTRK", jets_.eMaxFbremTRK,"eMaxFbremTRK[nref]/F");
+
+
     t->Branch("muMax", jets_.muMax,"muMax[nref]/F");
     t->Branch("muSum", jets_.muSum,"muSum[nref]/F");
     t->Branch("muN", jets_.muN,"muN[nref]/I");
+
+    t->Branch("muMaxGBL", jets_.muMaxGBL,"muMaxGBL[nref]/F");
+    t->Branch("muMaxTRK", jets_.muMaxTRK,"muMaxTRK[nref]/F");
+    t->Branch("muMaxSTA", jets_.muMaxSTA,"muMaxSTA[nref]/F");
+    t->Branch("muMaxErrGBL", jets_.muMaxErrGBL,"muMaxErrGBL[nref]/F");
+    t->Branch("muMaxErrTRK", jets_.muMaxErrTRK,"muMaxErrTRK[nref]/F");
+    t->Branch("muMaxErrSTA", jets_.muMaxErrSTA,"muMaxErrSTA[nref]/F");
   }
 
   if(doStandardJetID_){
@@ -308,6 +323,9 @@ HiInclusiveJetAnalyzer::beginJob() {
     t->Branch("svtxm",    jets_.svtxm,    "svtxm[nref]/F");
     t->Branch("svtxpt",   jets_.svtxpt,   "svtxpt[nref]/F");
     t->Branch("svtxmcorr", jets_.svtxmcorr, "svtxmcorr[nref]/F");
+    t->Branch("svtxFlx",    jets_.svtxFlx,    "svtxFlx[nref]/F");
+    t->Branch("svtxFly",    jets_.svtxFly,    "svtxFly[nref]/F");
+    t->Branch("svtxFlz",    jets_.svtxFlz,    "svtxFlz[nref]/F");
 
     t->Branch("nIPtrk",jets_.nIPtrk,"nIPtrk[nref]/I");
     t->Branch("nselIPtrk",jets_.nselIPtrk,"nselIPtrk[nref]/I");
@@ -344,6 +362,9 @@ HiInclusiveJetAnalyzer::beginJob() {
 
     t->Branch("pthat",&jets_.pthat,"pthat/F");
 
+    t->Branch("bProdCode",&jets_.bProdCode,"bProdCode/I");
+    t->Branch("cProdCode",&jets_.cProdCode,"cProdCode/I");
+
     // Only matched gen jets
     t->Branch("refpt",jets_.refpt,"refpt[nref]/F");
     t->Branch("refeta",jets_.refeta,"refeta[nref]/F");
@@ -357,6 +378,7 @@ HiInclusiveJetAnalyzer::beginJob() {
     t->Branch("refparton_pt",jets_.refparton_pt,"refparton_pt[nref]/F");
     t->Branch("refparton_flavor",jets_.refparton_flavor,"refparton_flavor[nref]/I");
     t->Branch("refparton_flavorForB",jets_.refparton_flavorForB,"refparton_flavorForB[nref]/I");
+    t->Branch("refparton_flavorProcess",jets_.refparton_flavorProcess,"refparton_flavorProcess[nref]/I");
 
     t->Branch("genChargedSum", jets_.genChargedSum,"genChargedSum[nref]/F");
     t->Branch("genHardSum", jets_.genHardSum,"genHardSum[nref]/F");
@@ -474,6 +496,12 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 
   edm::Handle<reco::PFCandidateCollection> pfCandidates;
   iEvent.getByToken(pfCandidateLabel_,pfCandidates);
+
+  edm::Handle<reco::MuonCollection> muons;
+  iEvent.getByToken(muonLabel_,muons);
+
+  edm::Handle<reco::GsfElectronCollection> gsfElectrons;
+  iEvent.getByToken(gsfElectronLabel_,gsfElectrons);
 
   edm::Handle<reco::TrackCollection> tracks;
   iEvent.getByToken(trackTag_,tracks);
@@ -605,11 +633,17 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  
 	  //try out the corrected mass (http://arxiv.org/pdf/1504.07670v1.pdf)
 	  //mCorr=srqt(m^2+p^2sin^2(th)) + p*sin(th)
-	  double sinth = svtx.p4().Vect().Unit().Cross(tagInfoSV.flightDirection(0).unit()).Mag2();
+	  const GlobalVector &flightDirection = tagInfoSV.flightDirection(0);
+	  double sinth = svtx.p4().Vect().Unit().Cross(flightDirection.unit()).Mag2();
 	  sinth = sqrt(sinth);
 	  jets_.svtxmcorr[jets_.nref] = sqrt(pow(svtxM,2)+(pow(svtxPt,2)*pow(sinth,2)))+svtxPt*sinth;
 
 	  if(svtx.ndof()>0)jets_.svtxnormchi2[jets_.nref]  = svtx.chi2()/svtx.ndof();
+
+	  jets_.svtxFlx[jets_.nref] = flightDirection.x(); 
+	  jets_.svtxFly[jets_.nref] = flightDirection.y(); 
+	  jets_.svtxFlz[jets_.nref] = flightDirection.z(); 
+
 	}
       }
       ith_tagged    = this->TaggedJet(jet,jetTags_negSvtxHighEff);
@@ -732,9 +766,21 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
       jets_.muSum[jets_.nref] = 0;
       jets_.muN[jets_.nref] = 0;
 
+      jets_.muMaxGBL[jets_.nref] = 0;
+      jets_.muMaxTRK[jets_.nref] = 0;
+      jets_.muMaxSTA[jets_.nref] = 0;
+      jets_.muMaxErrGBL[jets_.nref] = 0;
+      jets_.muMaxErrTRK[jets_.nref] = 0;
+      jets_.muMaxErrSTA[jets_.nref] = 0;
+
       jets_.eMax[jets_.nref] = 0;
       jets_.eSum[jets_.nref] = 0;
       jets_.eN[jets_.nref] = 0;
+
+      jets_.eMaxEoverP[jets_.nref] = 0;
+      jets_.eMaxNbrems[jets_.nref] = 0;
+      jets_.eMaxFbremSC[jets_.nref] = 0;
+      jets_.eMaxFbremTRK[jets_.nref] = 0;
 
       jets_.neutralMax[jets_.nref] = 0;
       jets_.neutralSum[jets_.nref] = 0;
@@ -792,12 +838,15 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	}
       }
 
+      float muMaxPhi = 0.;
+      float muMaxEta = -99.;
+
       for(unsigned int icand = 0; icand < pfCandidates->size(); ++icand){
-        const reco::PFCandidate& track = (*pfCandidates)[icand];
-        double dr = deltaR(jet,track);
+        const reco::PFCandidate& pfCand = (*pfCandidates)[icand];
+        double dr = deltaR(jet,pfCand);
         if(dr < rParam){
-	  double ptcand = track.pt();
-	  int pfid = track.particleId();
+	  double ptcand = pfCand.pt();
+	  int pfid = pfCand.particleId();
 
 	  switch(pfid){
 
@@ -820,6 +869,8 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  case 3:
 	    jets_.muSum[jets_.nref] += ptcand;
 	    jets_.muN[jets_.nref] += 1;
+            muMaxPhi = pfCand.phi();
+            muMaxEta = pfCand.eta();
 	    if(ptcand > jets_.muMax[jets_.nref]) jets_.muMax[jets_.nref] = ptcand;
 	    break;
 
@@ -845,6 +896,81 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  }
 	}
       }
+
+      float pfMuonPt = jets_.muMax[jets_.nref];
+      
+      float globalPt = 0.;
+      float innerTrackPt = 0.;
+      float standAlonePt = 0.;
+      float globalPtError = 0.;
+      float innerTrackPtError = 0.;
+      float standAlonePtError = 0.;
+      
+      if(pfMuonPt>0.){
+	
+        bool foundMuon = false;
+        for(unsigned int imu = 0; imu < muons->size(); ++imu){
+          const reco::Muon& recoMuon = (*muons)[imu];
+          if(recoMuon.isGlobalMuon()){
+            globalPt = recoMuon.combinedMuon()->pt();
+            globalPtError = recoMuon.combinedMuon()->ptError();
+          }
+          if(recoMuon.track().isNonnull()){
+            innerTrackPt = recoMuon.innerTrack()->pt();
+            innerTrackPtError = recoMuon.innerTrack()->ptError();	    
+          }
+          if(recoMuon.isStandAloneMuon()){
+            standAlonePt = recoMuon.standAloneMuon()->pt();
+            standAlonePtError = recoMuon.standAloneMuon()->ptError();
+          }      
+	  float recoMuonEta = recoMuon.eta();
+	  float recoMuonPhi = recoMuon.phi();
+	  if(recoMuonEta == muMaxEta && recoMuonPhi == muMaxPhi){
+	    foundMuon=true;
+	    break;
+	  }
+	}
+	
+	if(!foundMuon) cout<<" No reco muon found to match PF muon !!! "<<endl;
+      }
+      jets_.muMaxGBL[jets_.nref] = globalPt;
+      jets_.muMaxTRK[jets_.nref] = innerTrackPt;
+      jets_.muMaxSTA[jets_.nref] = standAlonePt;
+      jets_.muMaxErrGBL[jets_.nref] = globalPtError;
+      jets_.muMaxErrTRK[jets_.nref] = innerTrackPtError;
+      jets_.muMaxErrSTA[jets_.nref] = standAlonePtError;
+      
+      float pfElectronPt = jets_.eMax[jets_.nref];
+      
+      float gsfElectronPt = 0.;
+      float eOverP =0.;
+      int nBrems =0;
+      float fBremSC =0.;
+      float fBremTRK =0.;
+      
+      if(pfElectronPt>0.){
+	
+        bool foundElectron = false;
+        for(unsigned int iele = 0; iele < gsfElectrons->size(); ++iele){
+          const reco::GsfElectron& gsfElectron = (*gsfElectrons)[iele];
+          gsfElectronPt = gsfElectron.pt();
+          if( pfElectronPt == gsfElectronPt){
+            foundElectron=true;
+            eOverP = gsfElectron.eSuperClusterOverP();
+            nBrems = gsfElectron.numberOfBrems();
+            fBremSC = gsfElectron.superClusterFbrem();
+            fBremTRK = gsfElectron.trackFbrem();
+            break;
+          }
+        }
+        if(!foundElectron) cout<<" No reco electron found to match PF electron !!! "<<endl;
+      }
+      
+      jets_.eMaxEoverP[jets_.nref] = eOverP;
+      jets_.eMaxNbrems[jets_.nref] = nBrems;
+      jets_.eMaxFbremSC[jets_.nref] = fBremSC;
+      jets_.eMaxFbremTRK[jets_.nref] = fBremTRK;
+
 
       // Calorimeter fractions
 
@@ -1037,6 +1163,30 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 
     if(isMC_){
 
+      bool hasPrimB = false;
+      bool hasPrimC = false;
+      for(UInt_t i = 4; i < 8; ++i){
+	if( abs( (*genparts)[i].pdgId() )==5) hasPrimB = true;
+	if( abs( (*genparts)[i].pdgId() )==4) hasPrimC = true;	
+      }
+
+      if(hasPrimB){
+	if( abs( (*genparts)[4].pdgId() )==5 || abs( (*genparts)[5].pdgId() )==5 ){
+	  if(abs( (*genparts)[6].pdgId() )==5 && abs( (*genparts)[7].pdgId() )==5) jets_.bProdCode = 3;  // double FEX                                                                                
+	  else jets_.bProdCode = 2; //single FEX
+	}
+	else if(abs( (*genparts)[6].pdgId() )==5 && abs( (*genparts)[7].pdgId() )==5) jets_.bProdCode = 1;  // FCR
+      }
+      if(hasPrimC){
+	if( abs( (*genparts)[4].pdgId() )==4 || abs( (*genparts)[5].pdgId() )==4 ){
+	  if(abs( (*genparts)[6].pdgId() )==4 && abs( (*genparts)[7].pdgId() )==4) jets_.cProdCode = 3;  // double FEX                                                                                
+	  else jets_.cProdCode = 2; //single FEX
+	}
+	else if(abs( (*genparts)[6].pdgId() )==4 && abs( (*genparts)[7].pdgId() )==4) jets_.cProdCode = 1;  // FCR
+      }
+
+
+
       for(UInt_t i = 0; i < genparts->size(); ++i){
 	const reco::GenParticle& p = (*genparts)[i];
 	if (p.status()!=1) continue;
@@ -1086,7 +1236,53 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	jets_.refdphijt[jets_.nref] = -999.;
 	jets_.refdrjt[jets_.nref] = -999.;
       }
-      jets_.refparton_flavorForB[jets_.nref] = (*patjets)[j].partonFlavour();
+
+      int partonFlavor = (*patjets)[j].partonFlavour();
+      jets_.refparton_flavorForB[jets_.nref] = partonFlavor;
+
+
+      //const GenParticleRef aPartPhy = (*patjets)[j].physicsDefinitionParton();
+      //cout<<aPartPhy.pdgId()<<endl;
+
+      if(abs(partonFlavor)==4||abs(partonFlavor)==5){
+
+	// old code
+	// determine gluon splitting                                                                                                                                                
+	//Bool_t bFoundS3Quark = false;
+	//Bool_t bFoundS2Quark = false;
+	
+	/*	
+		for( size_t i = 0; i < genparts->size(); ++ i ) {
+		const GenParticle & genCand = (*genparts)[ i ];
+		//if(fabs(genCand.eta())>3.) continue;
+		Int_t MC_particleID=genCand.pdgId();
+		if(genCand.status() == 3 && MC_particleID ==partonFlavor){
+		bFoundS3Quark = true;
+		}
+		if(genCand.status() == 2 && MC_particleID ==partonFlavor){
+		bFoundS2Quark = true;
+		}
+		}
+		
+		
+		// if no status 3  quark but status 2                                                                                                                                       
+		if( (!bFoundS3Quark) && bFoundS2Quark  ) jets_.refparton_isGSP[jets_.nref] = true;
+		else jets_.refparton_isGSP[jets_.nref] = false;
+		cout<<" is GSP "<<jets_.refparton_isGSP[jets_.nref]<<endl;
+	*/
+
+
+	// find the highest pt status = 2 parton with right flavor inside the cone 
+
+	int partonMatchIndex = findMatchedParton(jet.eta(), jet.phi(), 0.3, genparts, partonFlavor);
+	if(partonMatchIndex<0)cout<< " couldn't find the parton "<<endl;
+	int flavorProcess =  getFlavorProcess(partonMatchIndex, genparts);
+	
+	jets_.refparton_flavorProcess[jets_.nref] = flavorProcess;
+		
+      }
+      else jets_.refparton_flavorProcess[jets_.nref] = 0;
+
       // matched partons
       const reco::GenParticle & parton = *(*patjets)[j].genParton();
 
@@ -1419,6 +1615,54 @@ int HiInclusiveJetAnalyzer::TaggedJet(Jet calojet, Handle<JetTagCollection > jet
     }
   }
   return result;
+}
+
+int HiInclusiveJetAnalyzer::findMatchedParton(float eta, float phi, float maxDr, Handle<GenParticleCollection > genparts, int partonFlavor=0){
+
+  float highestPartonPt =0.;
+  int matchIndex =-1;
+  for( size_t i = 0; i < genparts->size(); ++ i ) {
+    const GenParticle & genCand = (*genparts)[ i ];
+    
+    if(partonFlavor!=0){
+      if(genCand.pdgId()!=partonFlavor) continue;
+      if(genCand.status()!=2) continue;      
+    }
+    double dr = deltaR(eta,phi,genCand.eta(),genCand.phi());
+    if(dr>maxDr) continue;
+    if(genCand.pt() > highestPartonPt){
+      matchIndex = i;
+      highestPartonPt = genCand.pt();
+    }
+  }
+  return matchIndex;
+}
+
+int HiInclusiveJetAnalyzer::getFlavorProcess(int index, Handle<GenParticleCollection > genparts){
+
+  const GenParticle & matchedParton = (*genparts)[ index ];
+  if(matchedParton.numberOfMothers()>1) cout<<" too many parents "<<endl;
+  int momID = matchedParton.mother(0)->pdgId();
+  int momIndex = findMatchedParton(matchedParton.mother(0)->eta(),matchedParton.mother(0)->phi(),0.001,genparts);
+
+  if(abs(momID)==5){
+    if(matchedParton.mother(0)->status()==3) return 1;  // primary b-quark
+    else {
+      return getFlavorProcess(momIndex,genparts);
+    }
+  }
+  if(momIndex<2) return 4; // initial state GSP
+  else if(momIndex<4) return 3; // sometimes GSP, sometimes associated to FEX
+  else if(momIndex<6) return 2; // primaries
+  else if(momIndex<8){
+    if(momID==21) return 6;  // final state hard GSP
+    else return 5; // final state soft GSP
+  }
+  else cout<<" should never get here "<<" momID "<<momID<<" momIndex "<<momIndex<<endl;
+
+  
+  return -1;
+  
 }
 
 

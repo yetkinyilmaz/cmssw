@@ -1,10 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 
 inclusiveJetAnalyzer = cms.EDAnalyzer("HiInclusiveJetAnalyzer",
-
                                       jetTag = cms.InputTag("icPu5patJets"),
                                       matchTag = cms.untracked.InputTag("akPu3PFpatJets"),
                                       genjetTag = cms.InputTag("iterativeCone5HiGenJets"),
+                                      gsfElectronLabel = cms.InputTag("gedGsfElectronsTmp"),
                                       eventInfoTag = cms.InputTag("generator"),
                                       isMC = cms.untracked.bool(False), 
                                       fillGenJets = cms.untracked.bool(False),

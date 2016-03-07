@@ -26,9 +26,8 @@ process.HiForest.HiForestVersion = cms.string(version)
 process.source = cms.Source("PoolSource",
                             duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
                             fileNames = cms.untracked.vstring(
-        #                                "file:/afs/cern.ch/work/r/richard/public/PbPb_RECODEBUG.root",
-        "file:step3_hi_mc.root",
-                                )
+        'file:/tmp/mnguyen/step3_RAW2DIGI_L1Reco_RECO_truncatedPU.root'
+        )
                             )
 
 # Number of events we want to process, -1 = all events
@@ -48,7 +47,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 process.load('FWCore.MessageService.MessageLogger_cfi')
 
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '75X_mcRun2_HeavyIon_v12', '') #for now track GT manually, since centrality tables updated ex post facto
+process.GlobalTag = GlobalTag(process.GlobalTag, '75X_mcRun2_HeavyIon_v13', '') #for now track GT manually, since centrality tables updated ex post facto
 process.HiForest.GlobalTagLabel = process.GlobalTag.globaltag
 
 from HeavyIonsAnalysis.Configuration.CommonFunctions_cff import overrideJEC_PbPb5020
@@ -76,6 +75,18 @@ process.TFileService = cms.Service("TFileService",
 # Jets
 #############################
 process.load('HeavyIonsAnalysis.JetAnalysis.FullJetSequence_nominalPbPb')
+process.genParticlesForJets.ignoreParticleIDs+=[12,14,16]
+process.akPu3PFJetAnalyzer.matchJets = True
+process.akPu4PFJetAnalyzer.matchJets = True
+process.akVs3PFJetAnalyzer.matchJets = True
+process.akVs4PFJetAnalyzer.matchJets = True
+process.akPu3PFJetAnalyzer.matchTag = "akPu3CalopatJetsWithBtagging"
+process.akPu4PFJetAnalyzer.matchTag = "akPu4CalopatJetsWithBtagging"
+process.akVs3PFJetAnalyzer.matchTag = "akVs3CalopatJetsWithBtagging"
+process.akVs4PFJetAnalyzer.matchTag = "akVs4CalopatJetsWithBtagging"
+#print "match VS to PU, instead of PF to Calo !!!!"
+#process.akVs3PFJetAnalyzer.matchTag = "akPu3PFpatJetsWithBtagging"
+#process.akVs4PFJetAnalyzer.matchTag = "akPu4PFpatJetsWithBtagging"
 
 # Use this one for JEC:
 #process.load('HeavyIonsAnalysis.JetAnalysis.FullJetSequence_JECPbPb')
@@ -89,7 +100,7 @@ process.load('HeavyIonsAnalysis.EventAnalysis.HiMixAnalyzerRECO_cff')
 process.load('GeneratorInterface.HiGenCommon.HeavyIon_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.HiGenAnalyzer_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.runanalyzer_cff')
-process.HiGenParticleAna.genParticleSrc = cms.untracked.InputTag("genParticles")
+process.HiGenParticleAna.genParticleSrc = cms.untracked.InputTag("signalGenParticles")
 # Temporary disactivation - until we have DIGI & RECO in CMSSW_7_5_7_patch4
 process.HiGenParticleAna.doHI = False
 
@@ -105,7 +116,7 @@ process.hiEvtAnalyzer.doHiMC = cms.bool(True) #HI specific MC info
 process.load('HeavyIonsAnalysis.EventAnalysis.hltanalysis_cff')
 process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzer_cfi")
 process.pfcandAnalyzer.skipCharged = False
-process.pfcandAnalyzer.pfPtMin = 0
+process.pfcandAnalyzer.pfPtMin = 5.
 
 #####################################################################################
 
@@ -114,7 +125,10 @@ process.pfcandAnalyzer.pfPtMin = 0
 #########################
 process.load('HeavyIonsAnalysis.JetAnalysis.ExtraTrackReco_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
-
+process.anaTrack.trackPtMin = 1.
+process.anaTrack.qualityStrings = cms.untracked.vstring(['highPurity'])
+process.anaTrack.useQuality = True
+process.anaTrack.doPFMatching = False
 # Use this instead for track corrections
 ## process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_Corr_cff')
 
@@ -124,10 +138,10 @@ process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
 # Photons
 #####################
 
-process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
-process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.InputTag('gedPhotonsTmp'),
-                                                       recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerGED')
-)
+#process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
+#process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.InputTag('gedPhotonsTmp'),
+#                                                       recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerGED')
+#)
 
 #####################################################################################
 
@@ -136,7 +150,7 @@ process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.Input
 # tupel and necessary PAT sequences
 #####################
 
-process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_PbPb_mc_cff")
+#process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_PbPb_mc_cff")
 
 #####################################################################################
 
@@ -144,22 +158,24 @@ process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_PbPb_mc_cff")
 # Main analysis list
 #########################
 
+
 process.ana_step = cms.Path(
 # Temporary disactivation - until we have DIGI & RECO in CMSSW_7_5_7_patch4
-# process.mixAnalyzer *
-                            process.runAnalyzer *
-                            process.hltanalysis *
-                            process.centralityBin *
-                            process.hiEvtAnalyzer*
-                            process.HiGenParticleAna*
-                            process.jetSequences +
-                            process.ggHiNtuplizer +
-                            process.ggHiNtuplizerGED +
-                            process.pfcandAnalyzer +
-                            process.HiForest +
-                            process.trackSequencesPbPb #+
-                            #process.tupelPatSequence
-                            )
+    #process.mix *
+    #process.mixAnalyzer *
+    process.runAnalyzer *
+    process.hltanalysis *
+    process.centralityBin *
+    process.hiEvtAnalyzer*
+    process.jetSequences +
+    process.HiGenParticleAna*
+    #process.ggHiNtuplizer +
+    #process.ggHiNtuplizerGED +
+    process.pfcandAnalyzer +
+    process.HiForest +
+    process.trackSequencesPbPb #+
+    #process.tupelPatSequence
+    )
 
 #####################################################################################
 
@@ -210,3 +226,4 @@ process.uetable = cms.ESSource("PoolDBESSource",
 )
 process.es_prefer_uetable = cms.ESPrefer('PoolDBESSource','uetable')
 ##########################################UE##########################################
+

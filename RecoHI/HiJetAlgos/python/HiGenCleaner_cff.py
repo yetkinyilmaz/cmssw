@@ -3,11 +3,11 @@ import FWCore.ParameterSet.Config as cms
 
 from PhysicsTools.JetMCAlgos.SelectPartons_cff import myPartons
 genPartons = myPartons.clone(
-    src = cms.InputTag("hiGenParticles")
+    src = cms.InputTag("genParticles")
     )
 
 hiPartons = cms.EDProducer('HiPartonCleaner',
-                           src = cms.InputTag('genPartons'),
+                           src = cms.InputTag('myPartons'),
                            deltaR = cms.double(0.25),
                            ptCut  = cms.double(20),
                            createNewCollection = cms.untracked.bool(True),

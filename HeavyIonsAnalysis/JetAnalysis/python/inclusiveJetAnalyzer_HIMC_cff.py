@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 inclusiveJetAnalyzer = cms.EDAnalyzer("HiInclusiveJetAnalyzer",
                                       jetTag = cms.InputTag("icPu5patJets"),
                                       genjetTag = cms.InputTag("iterativeCone5HiGenJets"),
+                                      gsfElectronLabel = cms.InputTag("gedGsfElectrons"),
                                       isMC = cms.untracked.bool(True), 
 				      useHepMC = cms.untracked.bool(True),
                                       useCentrality = cms.untracked.bool(True),

@@ -180,6 +180,7 @@ ALGO_SUB_RADIUS_OBJECT_JetAnalyzer = inclusiveJetAnalyzer.clone(jetTag = cms.Inp
                                                              matchJets = cms.untracked.bool(DOMATCH),
                                                              matchTag = 'MATCHED_patJetsWithBtagging',
                                                              pfCandidateLabel = cms.untracked.InputTag('PARTICLEFLOW'),
+							     gsfElectronLabel = cms.InputTag('ELECTRON'),
                                                              trackTag = cms.InputTag("TRACKS"),
                                                              fillGenJets = ISMC,
                                                              isMC = ISMC,

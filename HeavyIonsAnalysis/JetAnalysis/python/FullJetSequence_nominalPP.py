@@ -7,6 +7,7 @@ ak5PFJets.doAreaFastjet = True
 ak3PFJets = ak5PFJets.clone(rParam = 0.3)
 from RecoJets.JetProducers.ak5GenJets_cfi import ak5GenJets
 ak3GenJets = ak5GenJets.clone(rParam = 0.3)
+ak4GenJets = ak5GenJets.clone(rParam = 0.4)
 
 from RecoJets.Configuration.GenJetParticles_cff import *
 from RecoHI.HiJetAlgos.HiGenJets_cff import *
@@ -25,6 +26,7 @@ highPurityTracks = cms.EDFilter("TrackSelector",
 jetSequences = cms.Sequence(
     genParticlesForJets +
     ak3GenJets +
+    ak4GenJets +
     ak5GenJets +
     ak3PFJets +
     ak5PFJets +
