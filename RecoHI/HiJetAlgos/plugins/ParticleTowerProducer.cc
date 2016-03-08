@@ -108,7 +108,6 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
    resetTowers(iEvent, iSetup);
 
-
    edm::Handle<reco::PFCandidateCollection> inputsHandle;
    iEvent.getByToken(src_, inputsHandle);
    
@@ -129,12 +128,7 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
     int iphi = phi2iphi(particle.phi(),ieta);
        
-    HcalSubdetector sd;
-    if(abs(ieta)<=16) sd = HcalBarrel;
-    else if(fabs(eta)< 3.) sd = HcalEndcap;  // Use the endcap until eta =3
-    else sd = HcalForward;
-    
-    HcalDetId hid = HcalDetId(sd,ieta,iphi,1); // assume depth=1
+    EtaPhi ep(ieta,iphi);
 
     // check against the old method (boundaries slightly shifted in the endcaps
     /*
@@ -156,29 +150,33 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	}
       }
     */
-    towers_[hid] += particle.et();      
+
+    towers_[ep] += particle.et();      
    }
    
    
    std::auto_ptr<CaloTowerCollection> prod(new CaloTowerCollection());
 
-   for ( std::map< DetId, double >::const_iterator iter = towers_.begin();
+   for ( EtaPhiMap::const_iterator iter = towers_.begin();
 	 iter != towers_.end(); ++iter ){
      
-     CaloTowerDetId newTowerId(iter->first.rawId());
+     EtaPhi ep = iter->first;
      double et = iter->second;
+
+     int ieta = ep.first;
+     int iphi = ep.second;
+
+     CaloTowerDetId newTowerId(0); // totally dummy id
 
      if(et>0){
 
-       GlobalPoint pos =geo_->getGeometry(newTowerId)->getPosition();
-       
-       if(!useHF_ && fabs(pos.eta()) > 3. ) continue;
+       if(!useHF_ && fabs(ieta) > 29) continue;
 
        // currently sets et =  pt, mass to zero
        // pt, eta , phi, mass
-       reco::Particle::PolarLorentzVector p4(et,pos.eta(),pos.phi(),0.);
-       
-       CaloTower newTower(newTowerId,et,0,0,0,0,p4,pos,pos);
+       reco::Particle::PolarLorentzVector p4(et,ieta2eta(ieta),iphi2phi(iphi,ieta),0.);
+       GlobalPoint dummypoint;
+       CaloTower newTower(newTowerId,et,0,0,0,0,p4,dummypoint,dummypoint);
        prod->push_back(newTower);     
      }
    }
@@ -259,6 +257,13 @@ ParticleTowerProducer::beginJob()
 
   // Use the real towers centrers for the barrel and endcap up to eta=3
   etaedge[0] = 0.;
+
+  for(int i=0;i<42;i++){
+    etaedge[i]=etatow[i];
+  }
+
+  return;
+
   for(int i=1;i<30;i++){
     etaedge[i] = (etacent[i-1]-etaedge[i-1])*2.0 + etaedge[i-1];
     //std::cout<<" i "<<i<<" etaedge "<<etaedge[i]<<std::endl;  
@@ -270,6 +275,8 @@ ParticleTowerProducer::beginJob()
       //std::cout<<" i "<<i<<" etaedge "<<etaedge[i]<<std::endl;  
     }
   }
+
+
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
@@ -281,6 +288,12 @@ ParticleTowerProducer::endJob() {
 void ParticleTowerProducer::resetTowers(edm::Event& iEvent,const edm::EventSetup& iSetup)
 {
   
+  for(EtaPhiMap::iterator iterator = towers_.begin(); iterator != towers_.end(); iterator++) {
+    iterator->second = 0;
+  }
+
+  return;
+
   std::vector<DetId> alldid =  geo_->getValidDetIds();
 
   for(std::vector<DetId>::const_iterator did=alldid.begin(); did != alldid.end(); did++){
@@ -293,7 +306,7 @@ void ParticleTowerProducer::resetTowers(edm::Event& iEvent,const edm::EventSetup
 	   //if((hid).iphi()==1)std::cout<<" ieta "<<(hid).ieta()<<" eta "<<pos.eta()<<" iphi "<<(hid).iphi()<<" phi "<<pos.phi()<<std::endl;
 	   if(fabs(pos.eta())>3.) continue;
 	 }
-	  towers_[(*did)] = 0.;
+	 //	  towers_[(*did)] = 0.;
        }
        
     }
@@ -529,6 +542,34 @@ int ParticleTowerProducer::phi2iphi(double phi, int ieta) const {
   return iphi;
 
 }
+
+double ParticleTowerProducer::iphi2phi(int iphi, int ieta) const {
+
+
+  double phi = 0;
+
+  if(abs(ieta)<=20){
+    phi = 2.*PI*(iphi-0.5)/72.;
+  }else if(abs(ieta)<40){
+    phi = 2.*PI*(iphi-0.5)/36.;
+  }else{
+    phi = 2.*PI*(iphi-0.5)/18.;
+  }
+
+  return phi;
+
+}
+
+
+
+double ParticleTowerProducer::ieta2eta(int ieta) const {
+
+  double eta = (etaedge[ieta] + etaedge[ieta-1])/2.;
+  return eta;
+}
+
+
+
 
     //define this as a plug-in
 DEFINE_FWK_MODULE(ParticleTowerProducer);

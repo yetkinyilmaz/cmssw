@@ -152,6 +152,7 @@ process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_PbPb_mc_cff")
 process.ana_step = cms.Path(
 # Temporary disactivation - until we have DIGI & RECO in CMSSW_7_5_7_patch4
 # process.mixAnalyzer *
+    process.PFTowers *
                             process.runAnalyzer *
                             process.hltanalysis *
                             process.centralityBin *
