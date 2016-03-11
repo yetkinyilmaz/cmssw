@@ -121,9 +121,6 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     double eta = particle.eta();
 
     int ieta = eta2ieta(eta);
-    if(ieta==-1) continue;
-    if(eta<0) ieta  *= -1;
-
     int iphi = phi2iphi(particle.phi(),ieta);
 
 
