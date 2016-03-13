@@ -23,9 +23,10 @@ hiSignalGenFilters = cms.Sequence(
     hiSignalGenParticles + 
     myPartons + 
     selectedPartons +
-    ak1HiSignalGenJets + 
-    ak2HiSignalGenJets +
+    #ak1HiSignalGenJets + 
+    #ak2HiSignalGenJets +
     ak3HiSignalGenJets +
-    ak4HiSignalGenJets +
-    ak5HiSignalGenJets +
-    ak6HiSignalGenJets )
+    ak4HiSignalGenJets #+
+    #ak5HiSignalGenJets +
+    #ak6HiSignalGenJets 
+)

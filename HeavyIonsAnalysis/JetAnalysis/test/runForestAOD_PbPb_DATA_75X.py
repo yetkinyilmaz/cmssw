@@ -89,11 +89,11 @@ process.voronoiBackgroundPF = voronoiBackgroundPF
 process.voronoiBackgroundCalo = voronoiBackgroundCalo
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.HiReRecoJets_HI_cff')
 
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu2CaloJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs2CaloJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs2PFJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu2PFJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs2PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu2CaloJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs2CaloJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs2PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu2PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs2PFJetSequence_PbPb_data_cff')
 
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu3CaloJetSequence_PbPb_data_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs3CaloJetSequence_PbPb_data_cff')
@@ -107,16 +107,16 @@ process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs4PFJetSequence_PbPb_data_cf
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu4PFJetSequence_PbPb_data_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs4PFJetSequence_PbPb_data_cff')
 
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu5CaloJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs5CaloJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs5PFJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu5PFJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs5PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu5CaloJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs5CaloJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs5PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu5PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs5PFJetSequence_PbPb_data_cff')
 
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter4PFJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter5PFJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop4PFJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop5PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter5PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop4PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop5PFJetSequence_PbPb_data_cff')
 
 process.highPurityTracks = cms.EDFilter("TrackSelector",
                                         src = cms.InputTag("hiGeneralTracks"),
@@ -131,43 +131,43 @@ process.jetSequences = cms.Sequence(
     process.kt4PFJets +
     process.hiFJRhoProducer +
     process.hiFJRhoAnalyzer +
-    process.akPu2CaloJets +
-    process.akPu2PFJets +
-    process.akVs2CaloJets +
-    process.akVs2PFJets +
-    process.akCs2PFJets +
+    #process.akPu2CaloJets +
+    #process.akPu2PFJets +
+    #process.akVs2CaloJets +
+    #process.akVs2PFJets +
+    #process.akCs2PFJets +
 
-    #process.akPu3CaloJets +
-    #process.akPu3PFJets +
+    process.akPu3CaloJets +
+    process.akPu3PFJets +
     process.akVs3CaloJets +
     process.akVs3PFJets +
     process.akCs3PFJets +
 
-    #process.akPu4CaloJets +
-    #process.akPu4PFJets +
+    process.akPu4CaloJets +
+    process.akPu4PFJets +
     process.akVs4CaloJets +
     process.akVs4PFJets +
     process.akCs4PFJets +
 
-    process.akPu5CaloJets +
-    process.akPu5PFJets +
-    process.akVs5CaloJets +
-    process.akVs5PFJets +
-    process.akCs5PFJets +
+    #process.akPu5CaloJets +
+    #process.akPu5PFJets +
+    #process.akVs5CaloJets +
+    #process.akVs5PFJets +
+    #process.akCs5PFJets +
 
     process.akCsFilter4PFJets +
-    process.akCsFilter5PFJets +
-    process.akCsSoftDrop4PFJets +
-    process.akCsSoftDrop5PFJets +
+    #process.akCsFilter5PFJets +
+    #process.akCsSoftDrop4PFJets +
+    #process.akCsSoftDrop5PFJets +
 
     process.highPurityTracks +
     process.offlinePrimaryVertices +
 
-    process.akPu2CaloJetSequence +
-    process.akVs2CaloJetSequence +
-    process.akVs2PFJetSequence +
-    process.akPu2PFJetSequence +
-    process.akCs2PFJetSequence +
+    #process.akPu2CaloJetSequence +
+    #process.akVs2CaloJetSequence +
+    #process.akVs2PFJetSequence +
+    #process.akPu2PFJetSequence +
+    #process.akCs2PFJetSequence +
 
     process.akPu3CaloJetSequence +
     process.akVs3CaloJetSequence +
@@ -181,16 +181,16 @@ process.jetSequences = cms.Sequence(
     process.akPu4PFJetSequence +
     process.akCs4PFJetSequence +
 
-    process.akPu5CaloJetSequence +
-    process.akVs5CaloJetSequence +
-    process.akVs5PFJetSequence +
-    process.akPu5PFJetSequence +
-    process.akCs5PFJetSequence +
+    #process.akPu5CaloJetSequence +
+    #process.akVs5CaloJetSequence +
+    #process.akVs5PFJetSequence +
+    #process.akPu5PFJetSequence +
+    #process.akCs5PFJetSequence +
 
     process.akCsFilter4PFJetSequence +
-    process.akCsFilter5PFJetSequence +
-    process.akCsSoftDrop4PFJetSequence +
-    process.akCsSoftDrop5PFJetSequence
+    #process.akCsFilter5PFJetSequence +
+    #process.akCsSoftDrop4PFJetSequence +
+    #process.akCsSoftDrop5PFJetSequence
 )
 
 #####################################################################################
@@ -217,8 +217,8 @@ process.load("HeavyIonsAnalysis.JetAnalysis.hcalNoise_cff")
 #########################
 # Track Analyzer
 #########################
-process.load('HeavyIonsAnalysis.JetAnalysis.ExtraTrackReco_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.ExtraTrackReco_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
 # process.load("HeavyIonsAnalysis.TrackAnalysis.METAnalyzer_cff")
 
 
@@ -227,12 +227,12 @@ process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
 #####################
 # Photons
 #####################
-process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
-process.ggHiNtuplizer.doGenParticles = False
-process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.InputTag('gedPhotonsTmp'),
-                                                       recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerGED')
-)
-
+#process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
+#process.ggHiNtuplizer.doGenParticles = False
+#process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.InputTag('gedPhotonsTmp'),
+#                                                       recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerGED')
+#)
+#
 
 ####################################################################################
 
@@ -240,7 +240,7 @@ process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.Input
 # tupel and necessary PAT sequences
 #####################
 
-process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_PbPb_cff")
+#process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_PbPb_cff")
 
 #####################################################################################
 
@@ -253,12 +253,12 @@ process.ana_step = cms.Path(process.hltanalysis *
                             process.centralityBin *
                             process.hiEvtAnalyzer*
                             process.jetSequences +
-                            process.ggHiNtuplizer +
-                            process.ggHiNtuplizerGED +
-                            process.pfcandAnalyzer +
-                            process.pfcandAnalyzerCS +
+                            #process.ggHiNtuplizer +
+                            #process.ggHiNtuplizerGED +
+                            #process.pfcandAnalyzer +
+                            #process.pfcandAnalyzerCS +
                             process.HiForest +
-                            process.trackSequencesPbPb +
+                            #process.trackSequencesPbPb +
                             process.hcalNoise #+
                             #process.tupelPatSequence
                             )

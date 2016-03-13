@@ -32,6 +32,7 @@ jetSequences = cms.Sequence(
     myPartons +
     genParticlesForJets +
     ak3GenJets +
+    ak4GenJets +
     ak5GenJets +
     ak3PFJets +
     ak5PFJets +

@@ -80,6 +80,9 @@ private:
   double getEt(math::XYZPoint pos, double energy);
   math::XYZPoint getPosition(const DetId &id, reco::Vertex::Point vtx = reco::Vertex::Point(0,0,0));
   int TaggedJet(reco::Jet calojet, edm::Handle<reco::JetTagCollection > jetTags );
+  int findMatchedParton(float eta, float phi, float maxDr, edm::Handle<reco::GenParticleCollection > genparts, int partonFlavor);
+  int getFlavorProcess(int index, edm::Handle<reco::GenParticleCollection > genparts);
+
   float getTau(unsigned num, const reco::GenJet object) const;
   void analyzeSubjets(const reco::Jet jet);
   
@@ -94,6 +97,7 @@ private:
   edm::EDGetTokenT<reco::JetView>              matchTag_;
   edm::EDGetTokenT<pat::JetCollection>         matchTagPat_;
   edm::EDGetTokenT<reco::PFCandidateCollection>         pfCandidateLabel_;
+  edm::EDGetTokenT<reco::MuonCollection>         muonLabel_;
   edm::EDGetTokenT<reco::TrackCollection>         trackTag_;
   edm::EDGetTokenT<reco::GenParticleCollection>         genParticleSrc_;
   edm::EDGetTokenT<std::vector<reco::GenJet> >         genjetTag_;
@@ -248,6 +252,9 @@ private:
     float muSum[MAXJETS];
     int muN[MAXJETS];
 
+    float muMaxGBL[MAXJETS];
+    float muMaxTRK[MAXJETS];
+
     float genChargedSum[MAXJETS];
     float genHardSum[MAXJETS];
     float signalChargedSum[MAXJETS];
@@ -373,8 +380,10 @@ private:
     float refparton_pt[MAXJETS];
     int refparton_flavor[MAXJETS];
     int refparton_flavorForB[MAXJETS];
+    int refparton_flavorProcess[MAXJETS];
 
     float pthat;
+    int bProdCode, cProdCode;
     int beamId1, beamId2;
     int ngen;
     int genmatchindex[MAXJETS];

@@ -110,6 +110,7 @@ HiInclusiveJetAnalyzer::HiInclusiveJetAnalyzer(const edm::ParameterSet& iConfig)
   skipCorrections_  = iConfig.getUntrackedParameter<bool>("skipCorrections",false);
 
   pfCandidateLabel_ = consumes<reco::PFCandidateCollection> (iConfig.getUntrackedParameter<edm::InputTag>("pfCandidateLabel",edm::InputTag("particleFlowTmp")));
+  muonLabel_ = consumes<reco::MuonCollection> (iConfig.getUntrackedParameter<edm::InputTag>("muonLabel",edm::InputTag("muons")));
 
   doTower = iConfig.getUntrackedParameter<bool>("doTower",false);
   if(doTower){
@@ -261,6 +262,10 @@ HiInclusiveJetAnalyzer::beginJob() {
     t->Branch("muMax", jets_.muMax,"muMax[nref]/F");
     t->Branch("muSum", jets_.muSum,"muSum[nref]/F");
     t->Branch("muN", jets_.muN,"muN[nref]/I");
+
+    t->Branch("muMaxGBL", jets_.muMaxGBL,"muMaxGBL[nref]/F");
+    t->Branch("muMaxTRK", jets_.muMaxTRK,"muMaxTRK[nref]/F");
+
   }
 
   if(doStandardJetID_){
@@ -369,6 +374,9 @@ HiInclusiveJetAnalyzer::beginJob() {
     t->Branch("beamId2",&jets_.beamId2,"beamId2/I");
 
     t->Branch("pthat",&jets_.pthat,"pthat/F");
+
+    t->Branch("bProdCode",&jets_.bProdCode,"bProdCode/I");
+    t->Branch("cProdCode",&jets_.cProdCode,"cProdCode/I");
 
     // Only matched gen jets
     t->Branch("refpt",jets_.refpt,"refpt[nref]/F");
@@ -510,6 +518,9 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 
   edm::Handle<reco::PFCandidateCollection> pfCandidates;
   iEvent.getByToken(pfCandidateLabel_,pfCandidates);
+
+  edm::Handle<reco::MuonCollection> muons;
+  iEvent.getByToken(muonLabel_,muons);
 
   edm::Handle<reco::TrackCollection> tracks;
   iEvent.getByToken(trackTag_,tracks);
@@ -757,6 +768,9 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
       jets_.muSum[jets_.nref] = 0;
       jets_.muN[jets_.nref] = 0;
 
+      jets_.muMaxGBL[jets_.nref] = 0;
+      jets_.muMaxTRK[jets_.nref] = 0;
+
       jets_.eMax[jets_.nref] = 0;
       jets_.eSum[jets_.nref] = 0;
       jets_.eN[jets_.nref] = 0;
@@ -817,12 +831,15 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	}
       }
 
+      float muMaxPhi = 0.;
+      float muMaxEta = -99.;
+
       for(unsigned int icand = 0; icand < pfCandidates->size(); ++icand){
-        const reco::PFCandidate& track = (*pfCandidates)[icand];
-        double dr = deltaR(jet,track);
+        const reco::PFCandidate& pfCand = (*pfCandidates)[icand];
+        double dr = deltaR(jet,pfCand);
         if(dr < rParam){
-	  double ptcand = track.pt();
-	  int pfid = track.particleId();
+	  double ptcand = pfCand.pt();
+	  int pfid = pfCand.particleId();
 
 	  switch(pfid){
 
@@ -845,6 +862,8 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  case 3:
 	    jets_.muSum[jets_.nref] += ptcand;
 	    jets_.muN[jets_.nref] += 1;
+            muMaxPhi = pfCand.phi();
+            muMaxEta = pfCand.eta();
 	    if(ptcand > jets_.muMax[jets_.nref]) jets_.muMax[jets_.nref] = ptcand;
 	    break;
 
@@ -870,6 +889,36 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  }
 	}
       }
+
+      float pfMuonPt = jets_.muMax[jets_.nref];
+
+      float globalPt = 0.;
+      float innerTrackPt = 0.;
+
+      if(pfMuonPt>0.){
+
+        bool foundMuon = false;
+        for(unsigned int imu = 0; imu < muons->size(); ++imu){
+          const reco::Muon& recoMuon = (*muons)[imu];
+          if(recoMuon.isGlobalMuon()){
+            globalPt = recoMuon.combinedMuon()->pt();
+          }
+          if(recoMuon.track().isNonnull()){
+            innerTrackPt = recoMuon.innerTrack()->pt();
+          }
+
+          float recoMuonEta = recoMuon.eta();
+          float recoMuonPhi = recoMuon.phi();
+          if(recoMuonEta == muMaxEta && recoMuonPhi == muMaxPhi){
+            foundMuon=true;
+            break;
+          }
+        }
+	
+        if(!foundMuon) cout<<" No reco muon found to match PF muon !!! "<<endl;
+      }
+      jets_.muMaxGBL[jets_.nref] = globalPt;
+      jets_.muMaxTRK[jets_.nref] = innerTrackPt;
 
       // Calorimeter fractions
 
@@ -1074,6 +1123,29 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 
     if(isMC_){
 
+      bool hasPrimB = false;
+      bool hasPrimC = false;
+      for(UInt_t i = 4; i < 8; ++i){
+        if( abs( (*genparts)[i].pdgId() )==5) hasPrimB = true;
+        if( abs( (*genparts)[i].pdgId() )==4) hasPrimC = true;
+      }
+
+      if(hasPrimB){
+        if( abs( (*genparts)[4].pdgId() )==5 || abs( (*genparts)[5].pdgId() )==5 ){
+          if(abs( (*genparts)[6].pdgId() )==5 && abs( (*genparts)[7].pdgId() )==5) jets_.bProdCode = 3;  // double FEX                         
+	  else jets_.bProdCode = 2; //single FEX                                                                                                     
+        }
+        else if(abs( (*genparts)[6].pdgId() )==5 && abs( (*genparts)[7].pdgId() )==5) jets_.bProdCode = 1;  // FCR                                   
+      }
+      if(hasPrimC){
+        if( abs( (*genparts)[4].pdgId() )==4 || abs( (*genparts)[5].pdgId() )==4 ){
+          if(abs( (*genparts)[6].pdgId() )==4 && abs( (*genparts)[7].pdgId() )==4) jets_.cProdCode = 3;  // double FEX                            
+          else jets_.cProdCode = 2; //single FEX                                                                                                    
+        }
+        else if(abs( (*genparts)[6].pdgId() )==4 && abs( (*genparts)[7].pdgId() )==4) jets_.cProdCode = 1;  // FCR                                  
+      }
+
+
       for(UInt_t i = 0; i < genparts->size(); ++i){
 	const reco::GenParticle& p = (*genparts)[i];
 	if (p.status()!=1) continue;
@@ -1127,7 +1199,21 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
       jets_.reftau2[jets_.nref] = -999.;
       jets_.reftau3[jets_.nref] = -999.;
       
-      jets_.refparton_flavorForB[jets_.nref] = (*patjets)[j].partonFlavour();
+      int partonFlavor = (*patjets)[j].partonFlavour();
+      jets_.refparton_flavorForB[jets_.nref] = partonFlavor;
+
+      if(abs(partonFlavor)==4||abs(partonFlavor)==5){
+	
+	int partonMatchIndex = findMatchedParton(jet.eta(), jet.phi(), 0.3, genparts, partonFlavor);
+        if(partonMatchIndex<0)cout<< " couldn't find the parton "<<endl;
+        int flavorProcess =  getFlavorProcess(partonMatchIndex, genparts);
+	
+        jets_.refparton_flavorProcess[jets_.nref] = flavorProcess;
+	
+      }
+      else jets_.refparton_flavorProcess[jets_.nref] = 0;
+
+
       // matched partons
       const reco::GenParticle & parton = *(*patjets)[j].genParton();
 
@@ -1492,6 +1578,53 @@ int HiInclusiveJetAnalyzer::TaggedJet(Jet calojet, Handle<JetTagCollection > jet
     }
   }
   return result;
+}
+int HiInclusiveJetAnalyzer::findMatchedParton(float eta, float phi, float maxDr, Handle<GenParticleCollection > genparts, int partonFlavor=0){
+
+  float highestPartonPt =0.;
+  int matchIndex =-1;
+  for( size_t i = 0; i < genparts->size(); ++ i ) {
+    const GenParticle & genCand = (*genparts)[ i ];
+
+    if(partonFlavor!=0){
+      if(genCand.pdgId()!=partonFlavor) continue;
+      if(genCand.status()!=2) continue;
+    }
+    double dr = deltaR(eta,phi,genCand.eta(),genCand.phi());
+    if(dr>maxDr) continue;
+    if(genCand.pt() > highestPartonPt){
+      matchIndex = i;
+      highestPartonPt = genCand.pt();
+    }
+  }
+  return matchIndex;
+}
+
+int HiInclusiveJetAnalyzer::getFlavorProcess(int index, Handle<GenParticleCollection > genparts){
+
+  const GenParticle & matchedParton = (*genparts)[ index ];
+  if(matchedParton.numberOfMothers()>1) cout<<" too many parents "<<endl;
+  int momID = matchedParton.mother(0)->pdgId();
+  int momIndex = findMatchedParton(matchedParton.mother(0)->eta(),matchedParton.mother(0)->phi(),0.001,genparts);
+
+  if(abs(momID)==5){
+    if(matchedParton.mother(0)->status()==3) return 1;  // primary b-quark                                                                          
+    else {
+      return getFlavorProcess(momIndex,genparts);
+    }
+  }
+  if(momIndex<2) return 4; // initial state GSP                                                                                                      
+  else if(momIndex<4) return 3; // sometimes GSP, sometimes associated to FEX                                                                        
+  else if(momIndex<6) return 2; // primaries                                                                                                         
+  else if(momIndex<8){
+    if(momID==21) return 6;  // final state hard GSP                                                                                                 
+    else return 5; // final state soft GSP                                                                                                           
+  }
+  else cout<<" should never get here "<<" momID "<<momID<<" momIndex "<<momIndex<<endl;
+
+
+  return -1;
+
 }
 
 float HiInclusiveJetAnalyzer::getTau(unsigned num, const reco::GenJet object) const
