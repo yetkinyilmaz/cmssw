@@ -182,7 +182,7 @@ akCsFilter3CaloJetAnalyzer = inclusiveJetAnalyzer.clone(jetTag = cms.InputTag("a
 							     genParticles = cms.untracked.InputTag("genParticles"),
 							     eventInfoTag = cms.InputTag("generator"),
                                                              doLifeTimeTagging = cms.untracked.bool(True),
-                                                             doLifeTimeTaggingExtras = cms.untracked.bool(False),
+                                                             doLifeTimeTaggingExtras = cms.untracked.bool(True),
                                                              bTagJetName = cms.untracked.string("akCsFilter3Calo"),
                                                              jetName = cms.untracked.string("akCsFilter3Calo"),
                                                              genPtMin = cms.untracked.double(15),

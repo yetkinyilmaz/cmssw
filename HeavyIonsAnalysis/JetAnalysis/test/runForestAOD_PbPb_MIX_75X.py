@@ -26,7 +26,7 @@ process.HiForest.HiForestVersion = cms.string(version)
 process.source = cms.Source("PoolSource",
                             duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
                             fileNames = cms.untracked.vstring(
-                                "file:samples/PbPb_MC_RECODEBUG.root"
+                                "/store/user/mnguyen//embeddedFCR/Pythia6_TuneZ2_5020GeV/Pythia6_TuneZ2_bfcr100_Hydjet_5020GeV_RECO/160310_080743/0000/step3_RAW2DIGI_L1Reco_RECO_99.root"
                                 )
                             )
 
@@ -167,6 +167,7 @@ process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
 #########################
 # Main analysis list
 #########################
+
 
 process.ana_step = cms.Path(
 # Temporary disactivation - until we have DIGI & RECO in CMSSW_7_5_7_patch4

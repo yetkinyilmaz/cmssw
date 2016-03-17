@@ -33,7 +33,7 @@ akCsSoftDrop3CalobTagger = bTaggers("akCsSoftDrop3Calo",0.3)
 
 #create objects locally since they dont load properly otherwise
 #akCsSoftDrop3Calomatch = akCsSoftDrop3CalobTagger.match
-akCsSoftDrop3Caloparton = patJetPartonMatch.clone(src = cms.InputTag("akCsSoftDrop3CaloJets"), matched = cms.InputTag("selectedPartons"))
+akCsSoftDrop3Caloparton = patJetPartonMatch.clone(src = cms.InputTag("akCsSoftDrop3CaloJets"), matched = cms.InputTag("hiSignalGenParticles"))
 akCsSoftDrop3CaloPatJetFlavourAssociationLegacy = akCsSoftDrop3CalobTagger.PatJetFlavourAssociationLegacy
 akCsSoftDrop3CaloPatJetPartons = akCsSoftDrop3CalobTagger.PatJetPartons
 akCsSoftDrop3CaloJetTracksAssociatorAtVertex = akCsSoftDrop3CalobTagger.JetTracksAssociatorAtVertex
@@ -182,7 +182,7 @@ akCsSoftDrop3CaloJetAnalyzer = inclusiveJetAnalyzer.clone(jetTag = cms.InputTag(
 							     genParticles = cms.untracked.InputTag("genParticles"),
 							     eventInfoTag = cms.InputTag("generator"),
                                                              doLifeTimeTagging = cms.untracked.bool(True),
-                                                             doLifeTimeTaggingExtras = cms.untracked.bool(False),
+                                                             doLifeTimeTaggingExtras = cms.untracked.bool(True),
                                                              bTagJetName = cms.untracked.string("akCsSoftDrop3Calo"),
                                                              jetName = cms.untracked.string("akCsSoftDrop3Calo"),
                                                              genPtMin = cms.untracked.double(15),

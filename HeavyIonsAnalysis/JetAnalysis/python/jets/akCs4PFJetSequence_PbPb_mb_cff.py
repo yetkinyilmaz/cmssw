@@ -182,7 +182,7 @@ akCs4PFJetAnalyzer = inclusiveJetAnalyzer.clone(jetTag = cms.InputTag("akCs4PFpa
 							     genParticles = cms.untracked.InputTag("genParticles"),
 							     eventInfoTag = cms.InputTag("generator"),
                                                              doLifeTimeTagging = cms.untracked.bool(True),
-                                                             doLifeTimeTaggingExtras = cms.untracked.bool(False),
+                                                             doLifeTimeTaggingExtras = cms.untracked.bool(True),
                                                              bTagJetName = cms.untracked.string("akCs4PF"),
                                                              jetName = cms.untracked.string("akCs4PF"),
                                                              genPtMin = cms.untracked.double(15),

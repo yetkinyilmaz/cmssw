@@ -26,8 +26,9 @@ process.HiForest.HiForestVersion = cms.string(version)
 process.source = cms.Source("PoolSource",
                             duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
                             fileNames = cms.untracked.vstring(
-                                "root://eoscms.cern.ch//eos/cms/store/cmst3/group/hintt/CMSSW_7_5_8_patch2/TTbar/RECO/Events_1.root"
-                            )
+        '/store/user/mnguyen///ppFCR/Pythia6_TuneZ2_5020GeV/Pythia6_bfcr100_TuneZ2_5020GeV_RECO/160306_145816/0000/step3_99.root'
+        #"root://eoscms.cern.ch//eos/cms/store/cmst3/group/hintt/CMSSW_7_5_8_patch2/TTbar/RECO/Events_1.root"
+        )
 )
 
 # Number of events we want to process, -1 = all events
@@ -72,7 +73,7 @@ process.TFileService = cms.Service("TFileService",
 #############################
 
 process.load("HeavyIonsAnalysis.JetAnalysis.FullJetSequence_nominalPP")
-
+process.genParticlesForJets.ignoreParticleIDs+=[12,14,16]
 # Use this version for JEC
 # process.load("HeavyIonsAnalysis.JetAnalysis.FullJetSequence_JECPP")
 
@@ -95,7 +96,7 @@ process.HiGenParticleAna.doHI = False
 process.load('HeavyIonsAnalysis.EventAnalysis.runanalyzer_cff')
 process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzer_pp_cfi")
 process.pfcandAnalyzer.skipCharged = False
-process.pfcandAnalyzer.pfPtMin = 0
+process.pfcandAnalyzer.pfPtMin = 5
 process.pfcandAnalyzer.pfCandidateLabel = cms.InputTag("particleFlow")
 process.pfcandAnalyzer.doVS = cms.untracked.bool(False)
 process.pfcandAnalyzer.doUEraw_ = cms.untracked.bool(False)
@@ -167,7 +168,7 @@ process.ana_step = cms.Path(process.hltanalysis *
                             #process.ggHiNtuplizerGED +
                             process.pfcandAnalyzer +
                             process.HiForest +
-			    process.trackSequencesPP +
+			    #process.trackSequencesPP +
                             process.runAnalyzer #+
                             #process.tupelPatSequence
 )
@@ -214,3 +215,26 @@ process.pVertexFilterCutEandG = cms.Path(process.pileupVertexFilterCutEandG)
 process.pAna = cms.EndPath(process.skimanalysis)
 
 # Customization
+from CondCore.DBCommon.CondDBSetup_cfi import *
+process.bTagPrefer = cms.ESSource("PoolDBESSource",
+                                  CondDBSetup,
+                                  connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
+                                  toGet = cms.VPSet(
+        cms.PSet(
+            record = cms.string('BTauGenericMVAJetTagComputerRcd'),
+            tag    = cms.string('MVAComputerContainer_75X_JetTags_v3_mc'),
+            label  = cms.untracked.string('')
+            )
+        )
+                                  )
+process.es_prefer_bTagPrefer = cms.ESPrefer('PoolDBESSource', 'bTagPrefer')
+
+process.jetSequences.remove(process.ak4CaloNjettiness)
+process.jetSequences.remove(process.ak3PFNjettiness)
+process.jetSequences.remove(process.ak4PFNjettiness)
+
+process.ak3PFpatJetsWithBtagging.userData.userFloats = cms.PSet(src = cms.VInputTag(""))
+process.ak4PFpatJetsWithBtagging.userData.userFloats = cms.PSet(src = cms.VInputTag(""))
+process.ak4CalopatJetsWithBtagging.userData.userFloats = cms.PSet(src = cms.VInputTag(""))
+
+

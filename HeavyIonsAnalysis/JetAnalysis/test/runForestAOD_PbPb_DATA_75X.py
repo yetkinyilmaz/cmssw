@@ -125,6 +125,21 @@ process.highPurityTracks = cms.EDFilter("TrackSelector",
 process.load("RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi")
 process.offlinePrimaryVertices.TrackLabel = 'highPurityTracks'
 
+
+process.akPu3PFJetAnalyzer.matchJets = True
+process.akPu4PFJetAnalyzer.matchJets = True
+process.akVs3PFJetAnalyzer.matchJets = True
+process.akVs4PFJetAnalyzer.matchJets = True
+process.akCs3PFJetAnalyzer.matchJets = True
+process.akCs4PFJetAnalyzer.matchJets = True
+process.akPu3PFJetAnalyzer.matchTag = "akPu3CalopatJetsWithBtagging"
+process.akPu4PFJetAnalyzer.matchTag = "akPu4CalopatJetsWithBtagging"
+process.akVs3PFJetAnalyzer.matchTag = "akVs3CalopatJetsWithBtagging"
+process.akVs4PFJetAnalyzer.matchTag = "akVs4CalopatJetsWithBtagging"
+process.akCs3PFJetAnalyzer.matchTag = "akPu3PFpatJetsWithBtagging"
+process.akCs4PFJetAnalyzer.matchTag = "akPu4PFpatJetsWithBtagging"
+
+
 process.jetSequences = cms.Sequence(
     voronoiBackgroundPF+
     voronoiBackgroundCalo+
@@ -187,7 +202,7 @@ process.jetSequences = cms.Sequence(
     #process.akPu5PFJetSequence +
     #process.akCs5PFJetSequence +
 
-    process.akCsFilter4PFJetSequence +
+    process.akCsFilter4PFJetSequence #+
     #process.akCsFilter5PFJetSequence +
     #process.akCsSoftDrop4PFJetSequence +
     #process.akCsSoftDrop5PFJetSequence

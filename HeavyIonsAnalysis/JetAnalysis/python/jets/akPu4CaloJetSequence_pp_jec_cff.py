@@ -33,7 +33,7 @@ akPu4CalobTagger = bTaggers("akPu4Calo",0.4)
 
 #create objects locally since they dont load properly otherwise
 #akPu4Calomatch = akPu4CalobTagger.match
-akPu4Caloparton = patJetPartonMatch.clone(src = cms.InputTag("akPu4CaloJets"), matched = cms.InputTag("selectedPartons"))
+akPu4Caloparton = patJetPartonMatch.clone(src = cms.InputTag("akPu4CaloJets"), matched = cms.InputTag("genParticles"))
 akPu4CaloPatJetFlavourAssociationLegacy = akPu4CalobTagger.PatJetFlavourAssociationLegacy
 akPu4CaloPatJetPartons = akPu4CalobTagger.PatJetPartons
 akPu4CaloJetTracksAssociatorAtVertex = akPu4CalobTagger.JetTracksAssociatorAtVertex
@@ -182,7 +182,7 @@ akPu4CaloJetAnalyzer = inclusiveJetAnalyzer.clone(jetTag = cms.InputTag("akPu4Ca
 							     genParticles = cms.untracked.InputTag("genParticles"),
 							     eventInfoTag = cms.InputTag("generator"),
                                                              doLifeTimeTagging = cms.untracked.bool(True),
-                                                             doLifeTimeTaggingExtras = cms.untracked.bool(False),
+                                                             doLifeTimeTaggingExtras = cms.untracked.bool(True),
                                                              bTagJetName = cms.untracked.string("akPu4Calo"),
                                                              jetName = cms.untracked.string("akPu4Calo"),
                                                              genPtMin = cms.untracked.double(15),

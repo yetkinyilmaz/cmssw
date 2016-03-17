@@ -32,7 +32,7 @@ process.source = cms.Source("PoolSource",
 
 # Number of events we want to process, -1 = all events
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1))
+    input = cms.untracked.int32(1000))
 
 
 #####################################################################################
@@ -91,12 +91,12 @@ process.highPurityTracks = cms.EDFilter("TrackSelector",
 
 process.jetSequences = cms.Sequence(
     process.ak3PFJets +
-    process.ak5PFJets +
+    #process.ak5PFJets +
     process.highPurityTracks +
     process.ak4CaloJetSequence +
     process.ak3PFJetSequence +
-    process.ak4PFJetSequence +
-    process.ak5PFJetSequence
+    process.ak4PFJetSequence #+
+    #process.ak5PFJetSequence
     )
 
 #####################################################################################
@@ -128,24 +128,24 @@ process.load("HeavyIonsAnalysis.JetAnalysis.hcalNoise_cff")
 #########################
 # Track Analyzer
 #########################
-process.load('HeavyIonsAnalysis.JetAnalysis.ExtraTrackReco_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.ExtraTrackReco_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
 
 ####################################################################################
 
 #####################
 # Photons
 #####################
-process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
-process.ggHiNtuplizer.gsfElectronLabel   = cms.InputTag("gedGsfElectrons")
-process.ggHiNtuplizer.recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerpp')
-process.ggHiNtuplizer.VtxLabel  = cms.InputTag("offlinePrimaryVertices")
-process.ggHiNtuplizer.particleFlowCollection = cms.InputTag("particleFlow")
-process.ggHiNtuplizer.doVsIso   = cms.bool(False)
-process.ggHiNtuplizer.doGenParticles = False
-process.ggHiNtuplizer.doElectronVID = cms.bool(True)
-process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.InputTag('gedPhotons'),
-                                                       recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerppGED'))
+#process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
+#process.ggHiNtuplizer.gsfElectronLabel   = cms.InputTag("gedGsfElectrons")
+#process.ggHiNtuplizer.recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerpp')
+#process.ggHiNtuplizer.VtxLabel  = cms.InputTag("offlinePrimaryVertices")
+#process.ggHiNtuplizer.particleFlowCollection = cms.InputTag("particleFlow")
+#process.ggHiNtuplizer.doVsIso   = cms.bool(False)
+#process.ggHiNtuplizer.doGenParticles = False
+#process.ggHiNtuplizer.doElectronVID = cms.bool(True)
+#process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.InputTag('gedPhotons'),
+#                                                       recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerppGED'))
 
 ####################################################################################
 
@@ -153,18 +153,18 @@ process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.Input
 # Electron ID
 #####################
 
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
+#from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 # turn on VID producer, indicate data format to be processed
 # DataFormat.AOD or DataFormat.MiniAOD
-dataFormat = DataFormat.AOD
-switchOnVIDElectronIdProducer(process, dataFormat)
+#dataFormat = DataFormat.AOD
+#switchOnVIDElectronIdProducer(process, dataFormat)
 
 # define which IDs we want to produce. Check here https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_7_4
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff']
+#my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff']
 
 #add them to the VID producer
-for idmod in my_id_modules:
-    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+#for idmod in my_id_modules:
+#    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 #####################################################################################
 
@@ -172,7 +172,7 @@ for idmod in my_id_modules:
 # tupel and necessary PAT sequences
 #####################
 
-process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_pp_cff")
+#process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_pp_cff")
 
 #####################################################################################
 
@@ -185,13 +185,13 @@ process.ana_step = cms.Path(process.hltanalysis *
 			    process.hltobject *
                             process.hiEvtAnalyzer *
                             process.jetSequences +
-                            process.egmGsfElectronIDSequence + #Should be added in the path for VID module
-                            process.ggHiNtuplizer +
-                            process.ggHiNtuplizerGED +
-                            process.pfcandAnalyzer +
-                            process.HiForest +
-                            process.trackSequencesPP +
-                            process.tupelPatSequence
+                            #process.egmGsfElectronIDSequence + #Should be added in the path for VID module
+                            #process.ggHiNtuplizer +
+                            #process.ggHiNtuplizerGED +
+                            #process.pfcandAnalyzer +
+                            process.HiForest #+
+                            #process.trackSequencesPP +
+                            #process.tupelPatSequence
                             )
 
 #####################################################################################
@@ -236,3 +236,37 @@ process.pVertexFilterCutEandG = cms.Path(process.pileupVertexFilterCutEandG)
 process.pAna = cms.EndPath(process.skimanalysis)
 
 # Customization
+from CondCore.DBCommon.CondDBSetup_cfi import *
+process.bTagPrefer = cms.ESSource("PoolDBESSource",
+                                  CondDBSetup,
+                                  connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
+                                  toGet = cms.VPSet(
+        cms.PSet(
+            record = cms.string('BTauGenericMVAJetTagComputerRcd'),
+            tag    = cms.string('MVAComputerContainer_75X_JetTags_v3_mc'),
+            label  = cms.untracked.string('')
+            )
+        )
+                                  )
+process.es_prefer_bTagPrefer = cms.ESPrefer('PoolDBESSource', 'bTagPrefer')
+
+process.jetSequences.remove(process.ak4CaloNjettiness)
+process.jetSequences.remove(process.ak3PFNjettiness)
+process.jetSequences.remove(process.ak4PFNjettiness)
+
+process.ak3PFpatJetsWithBtagging.userData.userFloats = cms.PSet(src = cms.VInputTag(""))
+process.ak4PFpatJetsWithBtagging.userData.userFloats = cms.PSet(src = cms.VInputTag(""))
+process.ak4CalopatJetsWithBtagging.userData.userFloats = cms.PSet(src = cms.VInputTag(""))
+
+
+process.load("HLTrigger.HLTfilters.hltHighLevel_cfi")
+process.hltPFJet60 = process.hltHighLevel.clone()
+process.hltPFJet60.HLTPaths = ["HLT_AK4PFJet*0_Eta5p1_v*"]
+
+process.superFilterSequence = cms.Sequence(process.hltPFJet60)
+process.superFilterPath = cms.Path(process.superFilterSequence)
+#process.skimanalysis.useHBHENoiseProducer = False
+
+process.skimanalysis.superFilters = cms.vstring("superFilterPath")
+for path in process.paths:
+    getattr(process,path)._seq = process.superFilterSequence*getattr(process,path)._seq
