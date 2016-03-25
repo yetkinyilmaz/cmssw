@@ -126,10 +126,11 @@ process.hiEvtAnalyzer.doHiMC = cms.bool(True) #HI specific MC info
 process.load('HeavyIonsAnalysis.EventAnalysis.hltanalysis_cff')
 process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzer_cfi")
 process.pfcandAnalyzer.skipCharged = False
-process.pfcandAnalyzer.pfPtMin = 5.
+process.pfcandAnalyzer.pfPtMin = 0.
 process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzerCS_cfi")
 process.pfcandAnalyzerCS.skipCharged = False
 process.pfcandAnalyzerCS.pfPtMin = 5.
+process.load("HeavyIonsAnalysis.JetAnalysis.rechitanalyzer_cfi")
 
 #####################################################################################
 
@@ -182,8 +183,10 @@ process.ana_step = cms.Path(
                             process.hiFJRhoAnalyzer +
                             #process.ggHiNtuplizer +
                             #process.ggHiNtuplizerGED +
-                            #process.pfcandAnalyzer +
-                            process.pfcandAnalyzerCS +
+                            process.pfcandAnalyzer +
+                            #process.rechitanalyzer + 
+                            process.pfTowers +
+                            #process.pfcandAnalyzerCS +
                             process.HiGenParticleAna*
                             process.HiForest #+
                             #process.trackSequencesPbPb #+
@@ -239,8 +242,3 @@ process.uetable = cms.ESSource("PoolDBESSource",
 )
 process.es_prefer_uetable = cms.ESPrefer('PoolDBESSource','uetable')
 ##########################################UE##########################################
-
-process.akCs3PFmatch.resolveByMatchQuality = True
-process.akCs4PFmatch.resolveByMatchQuality = True
-process.akVs3PFmatch.resolveByMatchQuality = True
-process.akVs4PFmatch.resolveByMatchQuality = True

@@ -65,7 +65,7 @@ from HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop4PFJetSequence_PbPb_mc_cff i
 from HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop5PFJetSequence_PbPb_mc_cff import *
 from HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop6PFJetSequence_PbPb_mc_cff import *
 
-from HeavyIonsAnalysis.JetAnalysis.makePartons_cff import *
+
 from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import *
 offlinePrimaryVertices.TrackLabel = 'highPurityTracks'
 
@@ -147,7 +147,7 @@ jetSequences = cms.Sequence(
     hiReRecoCaloJets +
     hiReRecoPFJets +
     
-    myPartons +
+
     highPurityTracks +
     offlinePrimaryVertices +
     

@@ -42,11 +42,13 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
 
-#include "fastjet/contrib/Njettiness.hh"
+#include "RecoBTau/JetTagComputer/interface/JetTagComputer.h"
+#include "RecoBTau/JetTagComputer/interface/JetTagComputerRecord.h"
 
 using namespace std;
 using namespace edm;
 using namespace reco;
+
 
 HiInclusiveJetAnalyzer::HiInclusiveJetAnalyzer(const edm::ParameterSet& iConfig) :
   geo(0)
@@ -170,11 +172,11 @@ HiInclusiveJetAnalyzer::HiInclusiveJetAnalyzer(const edm::ParameterSet& iConfig)
     genPtMin_ = iConfig.getUntrackedParameter<double>("genPtMin",10);
     doSubEvent_ = iConfig.getUntrackedParameter<bool>("doSubEvent",0);
   }
-
+  /*
   fastjet::contrib::OnePass_KT_Axes     onepass_kt_axes;
   fastjet::contrib::NormalizedMeasure normalizedMeasure(1.,rParam);
   routine_ = std::auto_ptr<fastjet::contrib::Njettiness> ( new fastjet::contrib::Njettiness( onepass_kt_axes, normalizedMeasure) );
-
+  */
 }
 
 
@@ -215,10 +217,22 @@ HiInclusiveJetAnalyzer::beginJob() {
   t->Branch("jtm",jets_.jtm,"jtm[nref]/F");
   t->Branch("jtarea",jets_.jtarea,"jtarea[nref]/F");
 
+  t->Branch("jtPfCHF",jets_.jtPfCHF,"jtPfCHF[nref]/F");
+  t->Branch("jtPfNHF",jets_.jtPfNHF,"jtPfNHF[nref]/F");
+  t->Branch("jtPfCEF",jets_.jtPfCEF,"jtPfCEF[nref]/F");
+  t->Branch("jtPfNEF",jets_.jtPfNEF,"jtPfNEF[nref]/F");
+  t->Branch("jtPfMUF",jets_.jtPfMUF,"jtPfMUF[nref]/F");
+
+  t->Branch("jtPfCHM",jets_.jtPfCHM,"jtPfCHM[nref]/I");
+  t->Branch("jtPfNHM",jets_.jtPfNHM,"jtPfNHM[nref]/I");
+  t->Branch("jtPfCEM",jets_.jtPfCEM,"jtPfCEM[nref]/I");
+  t->Branch("jtPfNEM",jets_.jtPfNEM,"jtPfNEM[nref]/I");
+  t->Branch("jtPfMUM",jets_.jtPfMUM,"jtPfMUM[nref]/I");
+  /*  
   t->Branch("jttau1",jets_.jttau1,"jttau1[nref]/F");
   t->Branch("jttau2",jets_.jttau2,"jttau2[nref]/F");
   t->Branch("jttau3",jets_.jttau3,"jttau3[nref]/F");
-
+  */
   if(doSubJets_) {
     t->Branch("jtSubJetPt",&jets_.jtSubJetPt);
     t->Branch("jtSubJetEta",&jets_.jtSubJetEta);
@@ -339,6 +353,9 @@ HiInclusiveJetAnalyzer::beginJob() {
     t->Branch("svtxm",    jets_.svtxm,    "svtxm[nref]/F");
     t->Branch("svtxpt",   jets_.svtxpt,   "svtxpt[nref]/F");
     t->Branch("svtxmcorr", jets_.svtxmcorr, "svtxmcorr[nref]/F");
+    t->Branch("svtxFlx",    jets_.svtxFlx,    "svtxFlx[nref]/F");
+    t->Branch("svtxFly",    jets_.svtxFly,    "svtxFly[nref]/F");
+    t->Branch("svtxFlz",    jets_.svtxFlz,    "svtxFlz[nref]/F");
 
     t->Branch("nIPtrk",jets_.nIPtrk,"nIPtrk[nref]/I");
     t->Branch("nselIPtrk",jets_.nselIPtrk,"nselIPtrk[nref]/I");
@@ -385,17 +402,20 @@ HiInclusiveJetAnalyzer::beginJob() {
     t->Branch("refphi",jets_.refphi,"refphi[nref]/F");
     t->Branch("refm",jets_.refm,"refm[nref]/F");
     t->Branch("refarea",jets_.refarea,"refarea[nref]/F");
+    /*
     if(doGenTaus_) {
       t->Branch("reftau1",jets_.reftau1,"reftau1[nref]/F");
       t->Branch("reftau2",jets_.reftau2,"reftau2[nref]/F");
       t->Branch("reftau3",jets_.reftau3,"reftau3[nref]/F");
     }
+    */
     t->Branch("refdphijt",jets_.refdphijt,"refdphijt[nref]/F");
     t->Branch("refdrjt",jets_.refdrjt,"refdrjt[nref]/F");
     // matched parton
     t->Branch("refparton_pt",jets_.refparton_pt,"refparton_pt[nref]/F");
     t->Branch("refparton_flavor",jets_.refparton_flavor,"refparton_flavor[nref]/I");
     t->Branch("refparton_flavorForB",jets_.refparton_flavorForB,"refparton_flavorForB[nref]/I");
+    t->Branch("refparton_flavorProcess",jets_.refparton_flavorProcess,"refparton_flavorProcess[nref]/I");
 
     t->Branch("genChargedSum", jets_.genChargedSum,"genChargedSum[nref]/F");
     t->Branch("genHardSum", jets_.genHardSum,"genHardSum[nref]/F");
@@ -413,11 +433,13 @@ HiInclusiveJetAnalyzer::beginJob() {
       t->Branch("genpt",jets_.genpt,"genpt[ngen]/F");
       t->Branch("geneta",jets_.geneta,"geneta[ngen]/F");
       t->Branch("geny",jets_.geny,"geny[ngen]/F");
+      /*
       if(doGenTaus_) {
         t->Branch("gentau1",jets_.gentau1,"gentau1[ngen]/F");
         t->Branch("gentau2",jets_.gentau2,"gentau2[ngen]/F");
         t->Branch("gentau3",jets_.gentau3,"gentau3[ngen]/F");
       }
+      */
       t->Branch("genphi",jets_.genphi,"genphi[ngen]/F");
       t->Branch("genm",jets_.genm,"genm[ngen]/F");
       t->Branch("gendphijt",jets_.gendphijt,"gendphijt[ngen]/F");
@@ -564,6 +586,8 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
   Handle<JetTagCollection> jetTags_negCombinedSvtxV2;
   Handle<JetTagCollection> jetTags_posCombinedSvtxV2;
 
+  ESHandle<JetTagComputer> computerHandle;
+
   //------------------------------------------------------
   // Soft muon tagger
   //------------------------------------------------------
@@ -584,7 +608,7 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
     iEvent.getByToken(NegativeSimpleSecondaryVertexHighEffBJetTags_, jetTags_negSvtxHighEff);
     iEvent.getByToken(SimpleSecondaryVertexHighPurBJetTags_, jetTags_SvtxHighPur);
     iEvent.getByToken(NegativeSimpleSecondaryVertexHighEffBJetTags_, jetTags_negSvtxHighPur);
-    iEvent.getByToken(CombinedSecondaryVertexBJetTags_, jetTags_CombinedSvtx);
+    iEvent.getByToken(CombinedSecondaryVertexBJetTags_, jetTags_CombinedSvtx);    
     iEvent.getByToken(NegativeCombinedSecondaryVertexBJetTags_, jetTags_negCombinedSvtx);
     iEvent.getByToken(PositiveCombinedSecondaryVertexBJetTags_, jetTags_posCombinedSvtx);
     iEvent.getByToken(CombinedSecondaryVertexV2BJetTags_, jetTags_CombinedSvtxV2);
@@ -592,6 +616,9 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
     iEvent.getByToken(PositiveCombinedSecondaryVertexV2BJetTags_, jetTags_posCombinedSvtxV2);
     //iEvent.getByToken(NegativeSoftPFMuonByPtBJetTags_, jetTags_softMuneg);
     //iEvent.getByToken(PositiveSoftPFMuonByPtBJetTags_, jetTags_softMu);
+    
+    iSetup.get<JetTagComputerRecord>().get( "combinedSecondaryVertexV2Computer", computerHandle );
+    computer = dynamic_cast<const GenericMVAJetTagComputer*>( computerHandle.product() );
   }
 
 
@@ -625,11 +652,11 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	jets_.discr_ssvHighEff[jets_.nref] = (*jetTags_SvtxHighEff)[ith_tagged].second;
 	const SecondaryVertexTagInfo &tagInfoSV = (*tagInfoSVx)[ith_tagged];
 	jets_.nsvtx[jets_.nref]     = tagInfoSV.nVertices();
-
+	
 	if ( jets_.nsvtx[jets_.nref] > 0) {
 
 	  jets_.svtxntrk[jets_.nref]  = tagInfoSV.nVertexTracks(0);
-
+	  
 	  // this is the 3d flight distance, for 2-D use (0,true)
 	  Measurement1D m1D = tagInfoSV.flightDistance(0);
 	  jets_.svtxdl[jets_.nref]    = m1D.value();
@@ -646,11 +673,16 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  
 	  //try out the corrected mass (http://arxiv.org/pdf/1504.07670v1.pdf)
 	  //mCorr=srqt(m^2+p^2sin^2(th)) + p*sin(th)
-	  double sinth = svtx.p4().Vect().Unit().Cross(tagInfoSV.flightDirection(0).unit()).Mag2();
+	  const GlobalVector &flightDirection = tagInfoSV.flightDirection(0);
+	  double sinth = svtx.p4().Vect().Unit().Cross(flightDirection.unit()).Mag2();
 	  sinth = sqrt(sinth);
 	  jets_.svtxmcorr[jets_.nref] = sqrt(pow(svtxM,2)+(pow(svtxPt,2)*pow(sinth,2)))+svtxPt*sinth;
 
 	  if(svtx.ndof()>0)jets_.svtxnormchi2[jets_.nref]  = svtx.chi2()/svtx.ndof();
+
+	  jets_.svtxFlx[jets_.nref] = flightDirection.x(); 
+	  jets_.svtxFly[jets_.nref] = flightDirection.y(); 
+	  jets_.svtxFlz[jets_.nref] = flightDirection.z(); 
 	}
       }
       ith_tagged    = this->TaggedJet(jet,jetTags_negSvtxHighEff);
@@ -713,6 +745,20 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  jets_.nIP += jets_.nselIPtrk[jets_.nref];
 
 	}
+	/*
+	// vertex category used by CSV
+	ith_tagged  = this->TaggedJet(jet,jetTags_CombinedSvtxV2);
+	const SecondaryVertexTagInfo &tagInfoSV = (*tagInfoSVx)[ith_tagged];
+	const TrackIPTagInfo& tagInfoIP2= (*tagInfo)[ith_tagged];
+	std::vector<const reco::BaseTagInfo*>  baseTagInfos;
+	JetTagComputer::TagInfoHelper helper(baseTagInfos);
+	baseTagInfos.push_back( &tagInfoIP2 );
+	baseTagInfos.push_back( &tagInfoSV );
+
+
+	reco::TaggingVariableList vars = computer->taggingVariables(helper);	
+	cout<<vars.get(reco::btau::vertexCategory) <<endl;
+	*/
       }
 
       ith_tagged = this->TaggedJet(jet,jetTags_JB);
@@ -920,44 +966,6 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
       jets_.muMaxGBL[jets_.nref] = globalPt;
       jets_.muMaxTRK[jets_.nref] = innerTrackPt;
 
-      // Calorimeter fractions
-
-      //   for(unsigned int i = 0; i < hbheHits->size(); ++i){
-      // 	const HBHERecHit & hit= (*hbheHits)[i];
-      // 	math::XYZPoint pos = getPosition(hit.id(),vtx);
-      // 	double dr = deltaR(jet.eta(),jet.phi(),pos.eta(),pos.phi());
-      // 	if(dr < rParam){
-      // 	  jets_.hcalSum[jets_.nref] += getEt(pos,hit.energy());
-      // 	}
-      //   }
-
-      //   for(unsigned int i = 0; i < hfHits->size(); ++i){
-      // 	const HFRecHit & hit= (*hfHits)[i];
-      // 	math::XYZPoint pos = getPosition(hit.id(),vtx);
-      // 	double dr = deltaR(jet.eta(),jet.phi(),pos.eta(),pos.phi());
-      // 	if(dr < rParam){
-      // 	  jets_.hcalSum[jets_.nref] += getEt(pos,hit.energy());
-      // 	}
-      //   }
-
-
-      //   for(unsigned int i = 0; i < ebHits->size(); ++i){
-      // 	const EcalRecHit & hit= (*ebHits)[i];
-      // 	math::XYZPoint pos = getPosition(hit.id(),vtx);
-      // 	double dr = deltaR(jet.eta(),jet.phi(),pos.eta(),pos.phi());
-      // 	if(dr < rParam){
-      // 	  jets_.ecalSum[jets_.nref] += getEt(pos,hit.energy());
-      // 	}
-      //   }
-
-      //   for(unsigned int i = 0; i < eeHits->size(); ++i){
-      // 	const EcalRecHit & hit= (*eeHits)[i];
-      // 	math::XYZPoint pos = getPosition(hit.id(),vtx);
-      // 	double dr = deltaR(jet.eta(),jet.phi(),pos.eta(),pos.phi());
-      // 	if(dr < rParam){
-      // 	  jets_.ecalSum[jets_.nref] += getEt(pos,hit.energy());
-      // 	}
-      //   }
 
       if(doTower){
 	// changing it to take things from towers
@@ -1073,21 +1081,36 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
     jets_.jtpu[jets_.nref] = jet.pileup();
     jets_.jtm[jets_.nref] = jet.mass();
     jets_.jtarea[jets_.nref] = jet.jetArea();
-
+    /*
     jets_.jttau1[jets_.nref] = -999.;
     jets_.jttau2[jets_.nref] = -999.;
     jets_.jttau3[jets_.nref] = -999.;
-
+    */
     if(doSubJets_) analyzeSubjets(jet);
     
     if(usePat_){
+      /*
       if( (*patjets)[j].hasUserFloat(jetName_+"Njettiness:tau1") )
         jets_.jttau1[jets_.nref] = (*patjets)[j].userFloat(jetName_+"Njettiness:tau1");
       if( (*patjets)[j].hasUserFloat(jetName_+"Njettiness:tau2") )
         jets_.jttau2[jets_.nref] = (*patjets)[j].userFloat(jetName_+"Njettiness:tau2");
       if( (*patjets)[j].hasUserFloat(jetName_+"Njettiness:tau3") )
         jets_.jttau3[jets_.nref] = (*patjets)[j].userFloat(jetName_+"Njettiness:tau3");
-
+      */
+      if( (*patjets)[j].isPFJet()) {
+	jets_.jtPfCHF[jets_.nref] = (*patjets)[j].chargedHadronEnergyFraction();
+	jets_.jtPfNHF[jets_.nref] = (*patjets)[j].neutralHadronEnergyFraction();
+	jets_.jtPfCEF[jets_.nref] = (*patjets)[j].chargedEmEnergyFraction();
+	jets_.jtPfNEF[jets_.nref] = (*patjets)[j].neutralEmEnergyFraction();
+	jets_.jtPfMUF[jets_.nref] = (*patjets)[j].muonEnergyFraction();
+	
+	jets_.jtPfCHM[jets_.nref] = (*patjets)[j].chargedHadronMultiplicity();
+	jets_.jtPfNHM[jets_.nref] = (*patjets)[j].neutralHadronMultiplicity();
+	jets_.jtPfCEM[jets_.nref] = (*patjets)[j].electronMultiplicity();
+	jets_.jtPfNEM[jets_.nref] = (*patjets)[j].photonMultiplicity();
+	jets_.jtPfMUM[jets_.nref] = (*patjets)[j].muonMultiplicity();
+      }
+      
       if(doStandardJetID_){
 	jets_.fHPD[jets_.nref] = (*patjets)[j].jetID().fHPD;
 	jets_.fRBX[jets_.nref] = (*patjets)[j].jetID().fRBX;
@@ -1300,7 +1323,7 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
       //edm::Ptr<reco::Jet> genjetPtr = genjets->ptrAt(genjetIt - genjets->begin());
       //const reco::GenJet genjet = (*dynamic_cast<const reco::GenJet*>(&(*genjetPtr)));
       float genjet_pt = genjet.pt();
-
+      /*
       float tau1 =  -999.;
       float tau2 =  -999.;
       float tau3 =  -9999.;
@@ -1309,7 +1332,7 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
         tau2 =  getTau(2,genjet);
         tau3 =  getTau(3,genjet);
       }
-
+      */
       // find matching patJet if there is one
       jets_.gendrjt[jets_.ngen] = -1.0;
       jets_.genmatchindex[jets_.ngen] = -1;
@@ -1323,11 +1346,13 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
             jets_.gendphijt[jets_.ngen] = reco::deltaPhi(jets_.refphi[ijet],genjet.phi());
             jets_.gendrjt[jets_.ngen] = sqrt(pow(jets_.gendphijt[jets_.ngen],2)+pow(fabs(genjet.eta()-jets_.refeta[ijet]),2));
           }
+	  /*
           if(doGenTaus_) {
             jets_.reftau1[ijet] = tau1;
             jets_.reftau2[ijet] = tau2;
             jets_.reftau3[ijet] = tau3;
           }
+	  */
           break;
         }
       }
@@ -1339,13 +1364,13 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	jets_.genphi[jets_.ngen] = genjet.phi();
         jets_.genm[jets_.ngen] = genjet.mass();
 	jets_.geny[jets_.ngen] = genjet.eta();
-
+	/*
         if(doGenTaus_) {
           jets_.gentau1[jets_.ngen] = tau1;
           jets_.gentau2[jets_.ngen] = tau2;
           jets_.gentau3[jets_.ngen] = tau3;
         }
-
+	*/
 	if(doSubEvent_){
 	  const GenParticle* gencon = genjet.getGenConstituent(0);
 	  jets_.gensubid[jets_.ngen] = gencon->collisionId();
@@ -1620,7 +1645,7 @@ int HiInclusiveJetAnalyzer::getFlavorProcess(int index, Handle<GenParticleCollec
     if(momID==21) return 6;  // final state hard GSP                                                                                                 
     else return 5; // final state soft GSP                                                                                                           
   }
-  else cout<<" should never get here "<<" momID "<<momID<<" momIndex "<<momIndex<<endl;
+  //else cout<<" should never get here "<<" momID "<<momID<<" momIndex "<<momIndex<<endl;
 
 
   return -1;

@@ -162,7 +162,7 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
        // pt, eta , phi, mass
        reco::Particle::PolarLorentzVector p4(et,ieta2eta(ieta),iphi2phi(iphi,ieta),0.);
 
-       cout<<"Polar Vector | et : "<<p4.pt()<<" | eta : "<<p4.eta()<<" | phi : "<<p4.phi()<<endl;
+       //cout<<"Polar Vector | et : "<<p4.pt()<<" | eta : "<<p4.eta()<<" | phi : "<<p4.phi()<<endl;
 
        GlobalPoint dummypoint(p4.x(),p4.y(),p4.z());
        CaloTower newTower(newTowerId,et,0,0,0,0,p4,dummypoint,dummypoint);

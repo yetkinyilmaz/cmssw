@@ -497,13 +497,14 @@ HiGenAnalyzer::beginJob()
       hydjetTree_->Branch("sta",&hev_.sta);
     }
     hydjetTree_->Branch("sube",&hev_.sube);
-
-    hydjetTree_->Branch("vx",&hev_.vx,"vx/F");
-    hydjetTree_->Branch("vy",&hev_.vy,"vy/F");
-    hydjetTree_->Branch("vz",&hev_.vz,"vz/F");
-    hydjetTree_->Branch("vr",&hev_.vr,"vr/F");
+    if(doVertex_){
+      hydjetTree_->Branch("vx",&hev_.vx,"vx/F");
+      hydjetTree_->Branch("vy",&hev_.vy,"vy/F");
+      hydjetTree_->Branch("vz",&hev_.vz,"vz/F");
+      hydjetTree_->Branch("vr",&hev_.vr,"vr/F");
+    }
+    }
   }
-}
 
 // ------------ method called once each job just after ending the event loop  ------------
 void

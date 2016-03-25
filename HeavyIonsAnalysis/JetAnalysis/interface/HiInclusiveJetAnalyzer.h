@@ -33,6 +33,9 @@
 
 #include "fastjet/contrib/Njettiness.hh"
 
+#include "RecoBTau/JetTagComputer/interface/GenericMVAJetTagComputer.h"
+#include "RecoBTau/JetTagComputer/interface/GenericMVAJetTagComputerWrapper.h"
+
 //
 
 /**\class HiInclusiveJetAnalyzer
@@ -186,6 +189,8 @@ private:
   edm::EDGetTokenT<reco::JetTagCollection> NegativeSoftPFMuonByPtBJetTags_;
   edm::EDGetTokenT<reco::JetTagCollection> PositiveSoftPFMuonByPtBJetTags_;
 
+  const GenericMVAJetTagComputer *computer ;
+
   static const int MAXJETS = 500;
   static const int MAXTRACKS = 5000;
   static const int MAXHLTBITS = 5000;
@@ -210,7 +215,19 @@ private:
     float jtpu[MAXJETS];
     float jtm[MAXJETS];
     float jtarea[MAXJETS];
-
+    
+    float jtPfCHF[MAXJETS];
+    float jtPfNHF[MAXJETS];
+    float jtPfCEF[MAXJETS];
+    float jtPfNEF[MAXJETS];
+    float jtPfMUF[MAXJETS];
+    
+    int jtPfCHM[MAXJETS];
+    int jtPfNHM[MAXJETS];
+    int jtPfCEM[MAXJETS];
+    int jtPfNEM[MAXJETS];
+    int jtPfMUM[MAXJETS];
+    
     float jttau1[MAXJETS];
     float jttau2[MAXJETS];
     float jttau3[MAXJETS];
@@ -331,6 +348,9 @@ private:
     float svtxpt[MAXJETS];
     float svtxmcorr[MAXJETS];
     float svtxnormchi2[MAXJETS];
+    float svtxFlx[MAXJETS];
+    float svtxFly[MAXJETS];
+    float svtxFlz[MAXJETS];
 
     int nIPtrk[MAXJETS];
     int nselIPtrk[MAXJETS];

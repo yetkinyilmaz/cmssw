@@ -43,6 +43,7 @@ from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import *
 offlinePrimaryVertices.TrackLabel = 'highPurityTracks'
 
 jetSequences = cms.Sequence(
+    PFTowers + 
     voronoiBackgroundPF+
     voronoiBackgroundCalo+
     kt4PFJets +

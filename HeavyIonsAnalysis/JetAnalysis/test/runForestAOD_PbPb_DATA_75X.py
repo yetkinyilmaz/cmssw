@@ -47,7 +47,7 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
-process.GlobalTag = GlobalTag(process.GlobalTag, '75X_dataRun2_v12', '')  #for now track GT manually, since centrality tables updated ex post facto
+process.GlobalTag = GlobalTag(process.GlobalTag, '75X_dataRun2_v13', '')  #for now track GT manually, since centrality tables updated ex post facto
 process.HiForest.GlobalTagLabel = process.GlobalTag.globaltag
 
 from HeavyIonsAnalysis.Configuration.CommonFunctions_cff import overrideJEC_PbPb5020
@@ -73,9 +73,11 @@ process.TFileService = cms.Service("TFileService",
 #############################
 # Jets
 #############################
+
 from Configuration.StandardSequences.ReconstructionHeavyIons_cff import voronoiBackgroundPF, voronoiBackgroundCalo
 from RecoJets.JetProducers.kt4PFJets_cfi import kt4PFJets
 from RecoHI.HiJetAlgos.hiFJRhoProducer import hiFJRhoProducer
+
 process.kt4PFJets = kt4PFJets
 process.hiFJRhoProducer = hiFJRhoProducer
 process.kt4PFJets.src = cms.InputTag('particleFlowTmp')
@@ -141,6 +143,7 @@ process.akCs4PFJetAnalyzer.matchTag = "akPu4PFpatJetsWithBtagging"
 
 
 process.jetSequences = cms.Sequence(
+    process.PFTowers+
     voronoiBackgroundPF+
     voronoiBackgroundCalo+
     process.kt4PFJets +

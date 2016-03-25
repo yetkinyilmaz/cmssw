@@ -26,7 +26,8 @@ process.HiForest.HiForestVersion = cms.string(version)
 process.source = cms.Source("PoolSource",
                             duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
                             fileNames = cms.untracked.vstring(
-                                "file:samples/PbPb_MC_RECODEBUG.root"
+        'file:/tmp/mnguyen/step3_RAW2DIGI_L1Reco_RECO_truncatedPU.root'
+        #'/store/user/mnguyen//doubleHydjet_5020GeV/NuGun_SingleHydjet_5020GeV_RECO_take2/160305_133615/0000/step3_RAW2DIGI_L1Reco_RECO_99.root'
                                 )
                             )
 
@@ -47,7 +48,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 process.load('FWCore.MessageService.MessageLogger_cfi')
 
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '75X_mcRun2_HeavyIon_v12', '') #for now track GT manually, since centrality tables updated ex post facto
+process.GlobalTag = GlobalTag(process.GlobalTag, '75X_mcRun2_HeavyIon_v13', '') #for now track GT manually, since centrality tables updated ex post facto
 process.HiForest.GlobalTagLabel = process.GlobalTag.globaltag
 
 from HeavyIonsAnalysis.Configuration.CommonFunctions_cff import overrideJEC_PbPb5020
@@ -85,7 +86,7 @@ process.load('HeavyIonsAnalysis.JetAnalysis.FullJetSequence_cleanedPbPb')
 #process.load('HeavyIonsAnalysis.JetAnalysis.FullJetSequence_JECPbPb')
 
 #rho analyzer
-process.load('HeavyIonsAnalysis.JetAnalysis.hiFJRhoAnalyzer_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.hiFJRhoAnalyzer_cff')
 
 ####################################################################################
 
@@ -110,20 +111,20 @@ process.load('HeavyIonsAnalysis.EventAnalysis.hievtanalyzer_mc_cfi')
 process.hiEvtAnalyzer.doMC = cms.bool(True) #general MC info
 process.hiEvtAnalyzer.doHiMC = cms.bool(True) #HI specific MC info
 process.load('HeavyIonsAnalysis.EventAnalysis.hltanalysis_cff')
-process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzer_cfi")
-process.pfcandAnalyzer.skipCharged = False
-process.pfcandAnalyzer.pfPtMin = 0
-process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzerCS_cfi")
-process.pfcandAnalyzerCS.skipCharged = False
-process.pfcandAnalyzerCS.pfPtMin = 0
-
+#process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzer_cfi")
+#process.pfcandAnalyzer.skipCharged = False
+#process.pfcandAnalyzer.pfPtMin = 0
+#process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzerCS_cfi")
+#process.pfcandAnalyzerCS.skipCharged = False
+#process.pfcandAnalyzerCS.pfPtMin = 0
+#
 #####################################################################################
 
 #########################
 # Track Analyzer
 #########################
-process.load('HeavyIonsAnalysis.JetAnalysis.ExtraTrackReco_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.ExtraTrackReco_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
 
 # Use this instead for track corrections
 ## process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_Corr_cff')
@@ -134,10 +135,10 @@ process.load('HeavyIonsAnalysis.JetAnalysis.TrkAnalyzers_cff')
 # Photons
 #####################
 
-process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
-process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.InputTag('gedPhotonsTmp'),
-                                                       recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerGED')
-)
+#process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
+#process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.InputTag('gedPhotonsTmp'),
+#                                                       recoPhotonHiIsolationMap = cms.InputTag('photonIsolationHIProducerGED')
+#)
 
 #####################################################################################
 
@@ -146,7 +147,7 @@ process.ggHiNtuplizerGED = process.ggHiNtuplizer.clone(recoPhotonSrc = cms.Input
 # tupel and necessary PAT sequences
 #####################
 
-process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_PbPb_mc_cff")
+#process.load("HeavyIonsAnalysis.VectorBosonAnalysis.tupelSequence_PbPb_mc_cff")
 
 #####################################################################################
 
@@ -165,13 +166,13 @@ process.ana_step = cms.Path(
                             process.akHiGenJets +
                             process.hiCleanedGenFilters + 
                             process.jetSequences +
-                            process.hiFJRhoAnalyzer +
-                            process.ggHiNtuplizer +
-                            process.ggHiNtuplizerGED +
-                            process.pfcandAnalyzer +
-                            process.pfcandAnalyzerCS +
-                            process.HiForest +
-                            process.trackSequencesPbPb #+
+                            #process.hiFJRhoAnalyzer +
+                            #process.ggHiNtuplizer +
+                            #process.ggHiNtuplizerGED +
+                            #process.pfcandAnalyzer +
+                            #process.pfcandAnalyzerCS +
+                            process.HiForest #+
+                            #process.trackSequencesPbPb #+
                             #process.tupelPatSequence
                             )
 
