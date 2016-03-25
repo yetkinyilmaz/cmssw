@@ -124,16 +124,16 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     int iphi = phi2iphi(particle.phi(),ieta);
 
 
-    cout<<"particle | eta : "<<eta<<" | ieta : "<<ieta<<endl;
-    cout<<"particle | phi : "<<particle.phi()<<" | iphi : "<<iphi<<endl;
-    cout<<"particle | et :"<<particle.et()<<endl;
+    //    cout<<"particle | eta : "<<eta<<" | ieta : "<<ieta<<endl;
+    //    cout<<"particle | phi : "<<particle.phi()<<" | iphi : "<<iphi<<endl;
+    //    cout<<"particle | et :"<<particle.et()<<endl;
        
     if(!useHF_ && abs(ieta) > 29 ) continue;
 
     EtaPhi ep(ieta,iphi);
     towers_[ep] += particle.et();
 
-    cout<<"accumulated et :"<<towers_[ep]<<endl;
+    //    cout<<"accumulated et :"<<towers_[ep]<<endl;
 
    }
    
@@ -149,8 +149,8 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      int ieta = ep.first;
      int iphi = ep.second;
 
-     cout<<"Creatin tower et : "<<et<<" | ieta : "<<ieta<<" | iphi : "<<iphi<<endl;
-     cout<<"at position | eta : "<<ieta2eta(ieta)<<" | phi : "<<iphi2phi(iphi,ieta)<<endl;
+     //     cout<<"Creatin tower et : "<<et<<" | ieta : "<<ieta<<" | iphi : "<<iphi<<endl;
+     //     cout<<"at position | eta : "<<ieta2eta(ieta)<<" | phi : "<<iphi2phi(iphi,ieta)<<endl;
 
      CaloTowerDetId newTowerId(ieta,iphi); // totally dummy id
 
@@ -162,7 +162,7 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
        // pt, eta , phi, mass
        reco::Particle::PolarLorentzVector p4(et,ieta2eta(ieta),iphi2phi(iphi,ieta),0.);
 
-       cout<<"Polar Vector | et : "<<p4.pt()<<" | eta : "<<p4.eta()<<" | phi : "<<p4.phi()<<endl;
+       //       cout<<"Polar Vector | et : "<<p4.pt()<<" | eta : "<<p4.eta()<<" | phi : "<<p4.phi()<<endl;
 
        GlobalPoint dummypoint(p4.x(),p4.y(),p4.z());
        CaloTower newTower(newTowerId,et,0,0,0,0,p4,dummypoint,dummypoint);
