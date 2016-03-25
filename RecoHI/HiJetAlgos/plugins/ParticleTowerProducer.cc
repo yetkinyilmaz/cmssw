@@ -124,16 +124,16 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     int iphi = phi2iphi(particle.phi(),ieta);
 
 
-    //    cout<<"particle | eta : "<<eta<<" | ieta : "<<ieta<<endl;
-    //    cout<<"particle | phi : "<<particle.phi()<<" | iphi : "<<iphi<<endl;
-    //    cout<<"particle | et :"<<particle.et()<<endl;
+    cout<<"particle | eta : "<<eta<<" | ieta : "<<ieta<<endl;
+    cout<<"particle | phi : "<<particle.phi()<<" | iphi : "<<iphi<<endl;
+    cout<<"particle | et :"<<particle.et()<<endl;
        
     if(!useHF_ && abs(ieta) > 29 ) continue;
 
     EtaPhi ep(ieta,iphi);
     towers_[ep] += particle.et();
 
-    //    cout<<"accumulated et :"<<towers_[ep]<<endl;
+    cout<<"accumulated et :"<<towers_[ep]<<endl;
 
    }
    
@@ -149,8 +149,8 @@ ParticleTowerProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      int ieta = ep.first;
      int iphi = ep.second;
 
-     //     cout<<"Creatin tower et : "<<et<<" | ieta : "<<ieta<<" | iphi : "<<iphi<<endl;
-     //     cout<<"at position | eta : "<<ieta2eta(ieta)<<" | phi : "<<iphi2phi(iphi,ieta)<<endl;
+     cout<<"Creatin tower et : "<<et<<" | ieta : "<<ieta<<" | iphi : "<<iphi<<endl;
+     cout<<"at position | eta : "<<ieta2eta(ieta)<<" | phi : "<<iphi2phi(iphi,ieta)<<endl;
 
      CaloTowerDetId newTowerId(ieta,iphi); // totally dummy id
 
@@ -243,10 +243,13 @@ int ParticleTowerProducer::phi2iphi(double phi, int ieta) const {
   else if(phi> 2.*PI) phi -= 2.*PI;
 
   int Nphi = 72;
-  if(abs(ieta)>20) Nphi = 36;
-  if(abs(ieta)>=40) Nphi = 18;
-  
-  int iphi = (int) TMath::Ceil(phi/2.0/PI*Nphi);
+  int n = 1;
+  if(abs(ieta)>20) n = 2;
+  if(abs(ieta)>=40) n = 4;
+
+  int iphi = (int) TMath::Ceil(phi/2.0/PI*Nphi/n);
+
+  iphi = n * (iphi - 1) + 1;
 
   if(0){
   // take into account larger granularity in endcap (x2) and at the end of the HF (x4)
@@ -268,10 +271,14 @@ double ParticleTowerProducer::iphi2phi(int iphi, int ieta) const {
 
   double phi = 0;
   int Nphi = 72;
-  if(abs(ieta)>20) Nphi = 36;
-  if(abs(ieta)>=40) Nphi = 18;
 
-  phi = 2.*PI*(iphi-0.5)/Nphi;
+  int n = 1;
+  if(abs(ieta)>20) n = 2;
+  if(abs(ieta)>=40) n = 4;
+
+  int myphi = (iphi - 1)/n + 1;
+
+  phi = 2.*PI*(myphi-0.5)/Nphi*n;
   while(phi > PI) phi -= 2.*PI;
 
   return phi;
