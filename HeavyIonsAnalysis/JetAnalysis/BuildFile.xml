@@ -32,4 +32,5 @@
 <use name="CondFormats/JetMETObjects"/>
 <use name="CalibFormats/HcalObjects"/>
 <use name="RecoLocalCalo/HcalRecAlgos"/>
+<use name="RecoBTau/JetTagComputer"/>
 <flags EDM_PLUGIN="1"/>

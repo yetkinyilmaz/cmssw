@@ -114,6 +114,16 @@ process.HiGenParticleAna.genParticleSrc = cms.untracked.InputTag("hiSignalGenPar
 # Temporary disactivation - until we have DIGI & RECO in CMSSW_7_5_7_patch4
 process.HiGenParticleAna.doHI = False
 
+process.bParticleAna = process.HiGenParticleAna.clone(
+    ptMin = 0.,
+    stableOnly = False,
+    bOnly = True,
+    etaMax =999.,
+    saveMothers = True,
+    saveDaughters = True
+)
+
+
 
 #####################################################################################
 
@@ -183,8 +193,9 @@ process.ana_step = cms.Path(
                             #process.ggHiNtuplizer +
                             #process.ggHiNtuplizerGED +
                             #process.pfcandAnalyzer +
-                            process.pfcandAnalyzerCS +
+                            #process.pfcandAnalyzerCS +
                             process.HiGenParticleAna*
+                            process.bParticleAna*
                             process.HiForest #+
                             #process.trackSequencesPbPb #+
                             #process.tupelPatSequence

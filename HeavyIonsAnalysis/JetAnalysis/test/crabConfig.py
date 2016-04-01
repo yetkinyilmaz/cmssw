@@ -1,1 +1,1 @@
-crabConfig.py.data
+crabConfig.py.mc

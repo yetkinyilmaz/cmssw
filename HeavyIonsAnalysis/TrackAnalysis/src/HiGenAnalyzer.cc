@@ -138,6 +138,7 @@ private:
   Double_t ptMin_;
   Bool_t chargedOnly_;
   Bool_t stableOnly_;
+  Bool_t bOnly_;
 
   // edm::InputTag src_;
   // edm::InputTag genParticleSrc_;
@@ -173,6 +174,7 @@ HiGenAnalyzer::HiGenAnalyzer(const edm::ParameterSet& iConfig)
   ptMin_ = iConfig.getUntrackedParameter<Double_t>("ptMin", 0);
   chargedOnly_ = iConfig.getUntrackedParameter<Bool_t>("chargedOnly", false);
   stableOnly_ = iConfig.getUntrackedParameter<Bool_t>("stableOnly", false);
+  bOnly_ = iConfig.getUntrackedParameter<Bool_t>("bOnly", false);
   if(useHepMCProduct_){
     src_ = consumes<edm::HepMCProduct>(iConfig.getUntrackedParameter<edm::InputTag>("src",edm::InputTag("generator")));
   } else {
@@ -360,6 +362,14 @@ HiGenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       if (stableOnly_ && p.status()!=1) continue;
       if (p.pt()<ptMin_) continue;
       if (chargedOnly_&&p.charge()==0) continue;
+      bool isB=false;
+      if(bOnly_){
+	if(abs(p.pdgId())==5) isB=true;
+	else if(abs(p.pdgId())>500&&abs(p.pdgId())<600) isB=true;
+	else if(abs(p.pdgId())>5000&&abs(p.pdgId())<6000) isB=true;
+      }
+      if(!isB) continue;
+      
       hev_.pt.push_back( p.pt());
       hev_.eta.push_back( p.eta());
       hev_.phi.push_back( p.phi());

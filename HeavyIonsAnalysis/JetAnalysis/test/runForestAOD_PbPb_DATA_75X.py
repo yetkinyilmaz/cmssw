@@ -84,6 +84,8 @@ process.kt4PFJets.src = cms.InputTag('particleFlowTmp')
 process.kt4PFJets.doAreaFastjet = True
 process.kt4PFJets.jetPtMin      = cms.double(0.0)
 process.kt4PFJets.GhostArea     = cms.double(0.005)
+from RecoHI.HiJetAlgos.hiFJGridEmptyAreaCalculator_cff import hiFJGridEmptyAreaCalculator
+process.hiFJGridEmptyAreaCalculator = hiFJGridEmptyAreaCalculator
 
 process.load('HeavyIonsAnalysis.JetAnalysis.hiFJRhoAnalyzer_cff')
 
@@ -98,14 +100,14 @@ process.load('HeavyIonsAnalysis.JetAnalysis.jets.HiReRecoJets_HI_cff')
 #process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs2PFJetSequence_PbPb_data_cff')
 
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu3CaloJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs3CaloJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs3PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs3CaloJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs3PFJetSequence_PbPb_data_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu3PFJetSequence_PbPb_data_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs3PFJetSequence_PbPb_data_cff')
 
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu4CaloJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs4CaloJetSequence_PbPb_data_cff')
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs4PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs4CaloJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akVs4PFJetSequence_PbPb_data_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu4PFJetSequence_PbPb_data_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs4PFJetSequence_PbPb_data_cff')
 
@@ -115,7 +117,7 @@ process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs4PFJetSequence_PbPb_data_cf
 #process.load('HeavyIonsAnalysis.JetAnalysis.jets.akPu5PFJetSequence_PbPb_data_cff')
 #process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCs5PFJetSequence_PbPb_data_cff')
 
-process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter4PFJetSequence_PbPb_data_cff')
+#process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter4PFJetSequence_PbPb_data_cff')
 #process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter5PFJetSequence_PbPb_data_cff')
 #process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop4PFJetSequence_PbPb_data_cff')
 #process.load('HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop5PFJetSequence_PbPb_data_cff')
@@ -130,24 +132,25 @@ process.offlinePrimaryVertices.TrackLabel = 'highPurityTracks'
 
 process.akPu3PFJetAnalyzer.matchJets = True
 process.akPu4PFJetAnalyzer.matchJets = True
-process.akVs3PFJetAnalyzer.matchJets = True
-process.akVs4PFJetAnalyzer.matchJets = True
+#process.akVs3PFJetAnalyzer.matchJets = True
+#process.akVs4PFJetAnalyzer.matchJets = True
 process.akCs3PFJetAnalyzer.matchJets = True
 process.akCs4PFJetAnalyzer.matchJets = True
 process.akPu3PFJetAnalyzer.matchTag = "akPu3CalopatJetsWithBtagging"
 process.akPu4PFJetAnalyzer.matchTag = "akPu4CalopatJetsWithBtagging"
-process.akVs3PFJetAnalyzer.matchTag = "akVs3CalopatJetsWithBtagging"
-process.akVs4PFJetAnalyzer.matchTag = "akVs4CalopatJetsWithBtagging"
+#process.akVs3PFJetAnalyzer.matchTag = "akVs3CalopatJetsWithBtagging"
+#process.akVs4PFJetAnalyzer.matchTag = "akVs4CalopatJetsWithBtagging"
 process.akCs3PFJetAnalyzer.matchTag = "akPu3PFpatJetsWithBtagging"
 process.akCs4PFJetAnalyzer.matchTag = "akPu4PFpatJetsWithBtagging"
 
 
 process.jetSequences = cms.Sequence(
     process.PFTowers+
-    voronoiBackgroundPF+
-    voronoiBackgroundCalo+
+    #voronoiBackgroundPF+
+    #voronoiBackgroundCalo+
     process.kt4PFJets +
     process.hiFJRhoProducer +
+    process.hiFJGridEmptyAreaCalculator +
     process.hiFJRhoAnalyzer +
     #process.akPu2CaloJets +
     #process.akPu2PFJets +
@@ -157,14 +160,14 @@ process.jetSequences = cms.Sequence(
 
     process.akPu3CaloJets +
     process.akPu3PFJets +
-    process.akVs3CaloJets +
-    process.akVs3PFJets +
+#    process.akVs3CaloJets +
+#    process.akVs3PFJets +
     process.akCs3PFJets +
 
     process.akPu4CaloJets +
     process.akPu4PFJets +
-    process.akVs4CaloJets +
-    process.akVs4PFJets +
+#    process.akVs4CaloJets +
+#    process.akVs4PFJets +
     process.akCs4PFJets +
 
     #process.akPu5CaloJets +
@@ -173,7 +176,7 @@ process.jetSequences = cms.Sequence(
     #process.akVs5PFJets +
     #process.akCs5PFJets +
 
-    process.akCsFilter4PFJets +
+#    process.akCsFilter4PFJets +
     #process.akCsFilter5PFJets +
     #process.akCsSoftDrop4PFJets +
     #process.akCsSoftDrop5PFJets +
@@ -188,16 +191,16 @@ process.jetSequences = cms.Sequence(
     #process.akCs2PFJetSequence +
 
     process.akPu3CaloJetSequence +
-    process.akVs3CaloJetSequence +
-    process.akVs3PFJetSequence +
+    #process.akVs3CaloJetSequence +
+    #process.akVs3PFJetSequence +
     process.akPu3PFJetSequence +
     process.akCs3PFJetSequence +
 
     process.akPu4CaloJetSequence +
-    process.akVs4CaloJetSequence +
-    process.akVs4PFJetSequence +
+    #process.akVs4CaloJetSequence +
+    #process.akVs4PFJetSequence +
     process.akPu4PFJetSequence +
-    process.akCs4PFJetSequence +
+    process.akCs4PFJetSequence #+
 
     #process.akPu5CaloJetSequence +
     #process.akVs5CaloJetSequence +
@@ -205,7 +208,7 @@ process.jetSequences = cms.Sequence(
     #process.akPu5PFJetSequence +
     #process.akCs5PFJetSequence +
 
-    process.akCsFilter4PFJetSequence #+
+    #process.akCsFilter4PFJetSequence #+
     #process.akCsFilter5PFJetSequence +
     #process.akCsSoftDrop4PFJetSequence +
     #process.akCsSoftDrop5PFJetSequence
