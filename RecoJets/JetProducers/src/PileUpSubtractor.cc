@@ -13,6 +13,7 @@
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 
 #include <map>
+#include <iostream>
 using namespace std;
 
 PileUpSubtractor::PileUpSubtractor(const edm::ParameterSet& iConfig, edm::ConsumesCollector && iC) :
@@ -97,6 +98,7 @@ void PileUpSubtractor::setupGeometryMap(edm::Event& iEvent,const edm::EventSetup
   }
 
   for (int i = ietamin_; i<ietamax_+1; i++) {
+    //cout<<"geomtowers_["<<i<<"] : "<<geomtowers_[i]<<endl;
     ntowersWithJets_[i] = 0;
   }
 }
@@ -214,15 +216,22 @@ void PileUpSubtractor::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanI
 
   vector <fastjet::PseudoJet>::iterator pseudojetTMP = fjJets_->begin (),
     fjJetsEnd = fjJets_->end();
+
   for (; pseudojetTMP != fjJetsEnd ; ++pseudojetTMP) {
     if(pseudojetTMP->perp() < puPtMin_) continue;
+
+    double minimumTowersFraction = 0.5;
 
     // find towers within radiusPU_ of this jet
     for(vector<HcalDetId>::const_iterator im = allgeomid_.begin(); im != allgeomid_.end(); im++)
       {
 	double dr = reco::deltaR(geo_->getPosition((DetId)(*im)),(*pseudojetTMP));
 	vector<pair<int,int> >::const_iterator exclude = find(excludedTowers.begin(),excludedTowers.end(),pair<int,int>(im->ieta(),im->iphi()));
-	if( dr < radiusPU_ && exclude == excludedTowers.end()) {
+	if( dr < radiusPU_ 
+	    && 
+	    exclude == excludedTowers.end() 
+	    && 
+	    ntowersWithJets_[(*im).ieta()] > minimumTowersFraction*(geomtowers_[(*im).ieta()])) {
 	  ntowersWithJets_[(*im).ieta()]++;     
 	  excludedTowers.push_back(pair<int,int>(im->ieta(),im->iphi()));
 	}
