@@ -13,6 +13,8 @@
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 
 #include <map>
+#include <iostream>
+
 using namespace std;
 
 PileUpSubtractor::PileUpSubtractor(const edm::ParameterSet& iConfig, edm::ConsumesCollector && iC) :
