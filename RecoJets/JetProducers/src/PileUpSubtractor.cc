@@ -13,6 +13,7 @@
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 
 #include <map>
+#include <iostream>
 using namespace std;
 
 PileUpSubtractor::PileUpSubtractor(const edm::ParameterSet& iConfig, edm::ConsumesCollector && iC) :
@@ -97,6 +98,7 @@ void PileUpSubtractor::setupGeometryMap(edm::Event& iEvent,const edm::EventSetup
   }
 
   for (int i = ietamin_; i<ietamax_+1; i++) {
+    cout<<"geomtowers_["<<i<<"] : "<<geomtowers_[i]<<endl;
     ntowersWithJets_[i] = 0;
   }
 }
@@ -214,16 +216,32 @@ void PileUpSubtractor::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanI
 
   vector <fastjet::PseudoJet>::iterator pseudojetTMP = fjJets_->begin (),
     fjJetsEnd = fjJets_->end();
+
+  cout<<"First iteration found N jets : "<<fjJets_->size()<<endl;
+
   for (; pseudojetTMP != fjJetsEnd ; ++pseudojetTMP) {
+
+    cout<<"Jet with pt "<<pseudojetTMP->perp()<<" to be excluded"<<endl;
+
     if(pseudojetTMP->perp() < puPtMin_) continue;
+
+    double minimumTowersFraction = 0.5;
+
+    cout<<"Looping over towers..."<<endl;
 
     // find towers within radiusPU_ of this jet
     for(vector<HcalDetId>::const_iterator im = allgeomid_.begin(); im != allgeomid_.end(); im++)
       {
 	double dr = reco::deltaR(geo_->getPosition((DetId)(*im)),(*pseudojetTMP));
 	vector<pair<int,int> >::const_iterator exclude = find(excludedTowers.begin(),excludedTowers.end(),pair<int,int>(im->ieta(),im->iphi()));
-	if( dr < radiusPU_ && exclude == excludedTowers.end()) {
+	if( dr < radiusPU_ 
+	    && 
+	    exclude == excludedTowers.end() 
+	    && 
+	    (geomtowers_[(*im).ieta()] - ntowersWithJets_[(*im).ieta()]) > minimumTowersFraction*(geomtowers_[(*im).ieta()])) {
 	  ntowersWithJets_[(*im).ieta()]++;     
+
+	  cout<<"At ieta : "<<(*im).ieta()<<" -  excluded so far : "<<ntowersWithJets_[(*im).ieta()]<<" out of max "<<geomtowers_[(*im).ieta()]<<endl;
 	  excludedTowers.push_back(pair<int,int>(im->ieta(),im->iphi()));
 	}
       }
@@ -237,6 +255,8 @@ void PileUpSubtractor::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanI
       vector<pair<int,int> >::const_iterator exclude = find(excludedTowers.begin(),excludedTowers.end(),pair<int,int>(ie,ip));
       if(exclude != excludedTowers.end()) {
 	jettowers.push_back(index);
+	cout<<"tower with index "<<index<<" excluded."<<endl;
+	cout<<"jettowers now : "<<jettowers.size()<<endl; 
       } //dr < radiusPU_
     } // initial input collection  
   } // pseudojets
