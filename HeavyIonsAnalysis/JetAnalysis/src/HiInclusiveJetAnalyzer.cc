@@ -58,7 +58,7 @@ HiInclusiveJetAnalyzer::HiInclusiveJetAnalyzer(const edm::ParameterSet& iConfig)
   jetTagPat_ = consumes<pat::JetCollection> (jetTagLabel_);
   matchTag_ = consumes<reco::JetView> (iConfig.getUntrackedParameter<InputTag>("matchTag"));
   matchTagPat_ = consumes<pat::JetCollection> (iConfig.getUntrackedParameter<InputTag>("matchTag"));
-
+  
   // vtxTag_ = iConfig.getUntrackedParameter<edm::InputTag>("vtxTag",edm::InputTag("hiSelectedVertex"));
   vtxTag_ = consumes<vector<reco::Vertex> >        (iConfig.getUntrackedParameter<edm::InputTag>("vtxTag",edm::InputTag("hiSelectedVertex")));  
   // iConfig.getUntrackedParameter<edm::InputTag>("vtxTag",edm::InputTag("hiSelectedVertex"));
@@ -69,6 +69,9 @@ HiInclusiveJetAnalyzer::HiInclusiveJetAnalyzer(const edm::ParameterSet& iConfig)
   jetName_ = iConfig.getUntrackedParameter<string>("jetName");
   doGenTaus_ = iConfig.getUntrackedParameter<bool>("doGenTaus",0);
   doSubJets_ = iConfig.getUntrackedParameter<bool>("doSubJets",0);
+  doGenSubJets_ = iConfig.getUntrackedParameter<bool>("doGenSubJets",false);
+  subjetGenTag_ = consumes<reco::JetView> (iConfig.getUntrackedParameter<InputTag>("subjetGenTag"));
+
   // useGenTaus = true;
   // if (iConfig.exists("genTau1"))
   //   tokenGenTau1_          = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("genTau1"));
@@ -401,6 +404,17 @@ HiInclusiveJetAnalyzer::beginJob() {
     t->Branch("refparton_flavor",jets_.refparton_flavor,"refparton_flavor[nref]/I");
     t->Branch("refparton_flavorForB",jets_.refparton_flavorForB,"refparton_flavorForB[nref]/I");
 
+    if(doGenSubJets_) {
+      t->Branch("refptG",jets_.refptG,"refptG[nref]/F");
+      t->Branch("refetaG",jets_.refetaG,"refetaG[nref]/F");
+      t->Branch("refphiG",jets_.refphiG,"refphiG[nref]/F");
+      t->Branch("refmG",jets_.refmG,"refmG[nref]/F");
+      t->Branch("refSubJetPt",&jets_.refSubJetPt);
+      t->Branch("refSubJetEta",&jets_.refSubJetEta);
+      t->Branch("refSubJetPhi",&jets_.refSubJetPhi);
+      t->Branch("refSubJetM",&jets_.refSubJetM);
+    }
+    
     t->Branch("genChargedSum", jets_.genChargedSum,"genChargedSum[nref]/F");
     t->Branch("genHardSum", jets_.genHardSum,"genHardSum[nref]/F");
     t->Branch("signalChargedSum", jets_.signalChargedSum,"signalChargedSum[nref]/F");
@@ -426,6 +440,17 @@ HiInclusiveJetAnalyzer::beginJob() {
       t->Branch("genm",jets_.genm,"genm[ngen]/F");
       t->Branch("gendphijt",jets_.gendphijt,"gendphijt[ngen]/F");
       t->Branch("gendrjt",jets_.gendrjt,"gendrjt[ngen]/F");
+
+      if(doGenSubJets_) {
+        t->Branch("genptG",jets_.genptG,"genptG[ngen]/F");
+        t->Branch("genetaG",jets_.genetaG,"genetaG[ngen]/F");
+        t->Branch("genphiG",jets_.genphiG,"genphiG[ngen]/F");
+        t->Branch("genmG",jets_.genmG,"genmG[ngen]/F");
+        t->Branch("genSubJetPt",&jets_.genSubJetPt);
+        t->Branch("genSubJetEta",&jets_.genSubJetEta);
+        t->Branch("genSubJetPhi",&jets_.genSubJetPhi);
+        t->Branch("genSubJetM",&jets_.genSubJetM);
+      }
 
       if(doSubEvent_){
 	t->Branch("gensubid",jets_.gensubid,"gensubid[ngen]/I");
@@ -517,6 +542,9 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
   edm::Handle<reco::JetView> matchedjets;
   iEvent.getByToken(matchTag_, matchedjets);
 
+  if(doGenSubJets_)
+    iEvent.getByToken(subjetGenTag_, gensubjets_);
+  
   edm::Handle<reco::JetView> jets;
   iEvent.getByToken(jetTag_, jets);
 
@@ -1103,6 +1131,8 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  jets_.subid[jets_.nref] = gencon->collisionId();
 	}
 
+        if(doGenSubJets_) analyzeRefSubjets(*genjet);
+
       }else{
 	jets_.refpt[jets_.nref] = -999.;
 	jets_.refeta[jets_.nref] = -999.;
@@ -1112,6 +1142,27 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	jets_.refy[jets_.nref] = -999.;
 	jets_.refdphijt[jets_.nref] = -999.;
 	jets_.refdrjt[jets_.nref] = -999.;
+
+        if(doGenSubJets_) {
+          jets_.refptG[jets_.nref]  = -999.;
+          jets_.refetaG[jets_.nref] = -999.;
+          jets_.refphiG[jets_.nref] = -999.;
+          jets_.refmG[jets_.nref]   = -999.;
+
+          std::vector<float> sjpt;
+          std::vector<float> sjeta;
+          std::vector<float> sjphi;
+          std::vector<float> sjm;
+          sjpt.push_back(-999.);
+          sjeta.push_back(-999.);
+          sjphi.push_back(-999.);
+          sjm.push_back(-999.);
+
+          jets_.refSubJetPt.push_back(sjpt);
+          jets_.refSubJetEta.push_back(sjeta);
+          jets_.refSubJetPhi.push_back(sjphi);
+          jets_.refSubJetM.push_back(sjm);
+        }
       }
       jets_.reftau1[jets_.nref] = -999.;
       jets_.reftau2[jets_.nref] = -999.;
@@ -1146,19 +1197,12 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 	  jets_.bMult++;
 	  saveDaughters(parton);
 	}
-
-
       } else {
 	jets_.refparton_pt[jets_.nref] = -999;
 	jets_.refparton_flavor[jets_.nref] = -999;
       }
-
-
     }
-
     jets_.nref++;
-
-
   }
 
   if(isMC_){
@@ -1250,6 +1294,9 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
           jets_.gentau3[jets_.ngen] = tau3;
         }
 
+        if(doGenSubJets_)
+          analyzeGenSubjets(genjet);
+
 	if(doSubEvent_){
 	  const GenParticle* gencon = genjet.getGenConstituent(0);
 	  jets_.gensubid[jets_.ngen] = gencon->collisionId();
@@ -1260,16 +1307,9 @@ HiInclusiveJetAnalyzer::analyze(const Event& iEvent,
 
   }
 
-
-
-
-
   t->Fill();
   memset(&jets_,0,sizeof jets_);
-
 }
-
-
 
 
 //--------------------------------------------------------------------------------------------------
@@ -1512,12 +1552,137 @@ void HiInclusiveJetAnalyzer::analyzeSubjets(const reco::Jet jet) {
       sjphi.push_back(dp.phi());
       sjm.push_back(dp.mass());
     }
+  } else {
+    sjpt.push_back(-999.);
+    sjeta.push_back(-999.);
+    sjphi.push_back(-999.);
+    sjm.push_back(-999.);
   }
   jets_.jtSubJetPt.push_back(sjpt);
   jets_.jtSubJetEta.push_back(sjeta);
   jets_.jtSubJetPhi.push_back(sjphi);
   jets_.jtSubJetM.push_back(sjm);
   
+}
+
+//--------------------------------------------------------------------------------------------------
+int HiInclusiveJetAnalyzer::getGroomedGenJetIndex(const reco::GenJet jet) const {
+  //Find closest soft-dropped gen jet
+  double drMin = 100;
+  int imatch = -1;
+  for(unsigned int i = 0 ; i < gensubjets_->size(); ++i) {
+    const reco::Jet& mjet = (*gensubjets_)[i];
+
+    double dr = deltaR(jet,mjet);
+    if(dr < drMin){
+      imatch = i;
+      drMin = dr;
+    }
+  }
+  return imatch;
+}
+
+//--------------------------------------------------------------------------------------------------
+void HiInclusiveJetAnalyzer::analyzeRefSubjets(const reco::GenJet jet) {
+
+  //Find closest soft-dropped gen jet
+  int imatch = getGroomedGenJetIndex(jet);
+  double dr = 999.;
+  if(imatch>-1) {
+    const reco::Jet& mjet =  (*gensubjets_)[imatch];
+    dr = deltaR(jet,mjet);
+  }
+
+  std::vector<float> sjpt;
+  std::vector<float> sjeta;
+  std::vector<float> sjphi;
+  std::vector<float> sjm;
+  if(imatch>-1 && dr<0.4) {
+    const reco::Jet& mjet =  (*gensubjets_)[imatch];
+    jets_.refptG[jets_.nref]  = mjet.pt();
+    jets_.refetaG[jets_.nref] = mjet.eta();
+    jets_.refphiG[jets_.nref] = mjet.phi();
+    jets_.refmG[jets_.nref]   = mjet.mass();
+
+    if(mjet.numberOfDaughters()>0) {
+      for (unsigned k = 0; k < mjet.numberOfDaughters(); ++k) {
+        const reco::Candidate & dp = *mjet.daughter(k);
+        sjpt.push_back(dp.pt());
+        sjeta.push_back(dp.eta());
+        sjphi.push_back(dp.phi());
+        sjm.push_back(dp.mass());
+      }
+    }
+  }
+  else {
+    jets_.refptG[jets_.nref]  = -999.;
+    jets_.refetaG[jets_.nref] = -999.;
+    jets_.refphiG[jets_.nref] = -999.;
+    jets_.refmG[jets_.nref]   = -999.;
+
+    sjpt.push_back(-999.);
+    sjeta.push_back(-999.);
+    sjphi.push_back(-999.);
+    sjm.push_back(-999.);
+  }
+
+  jets_.refSubJetPt.push_back(sjpt);
+  jets_.refSubJetEta.push_back(sjeta);
+  jets_.refSubJetPhi.push_back(sjphi);
+  jets_.refSubJetM.push_back(sjm);
+}
+
+//--------------------------------------------------------------------------------------------------
+void HiInclusiveJetAnalyzer::analyzeGenSubjets(const reco::GenJet jet) {
+  //Find closest soft-dropped gen jet
+  int imatch = getGroomedGenJetIndex(jet);
+  double dr = 999.;
+  if(imatch>-1) {
+    const reco::Jet& mjet =  (*gensubjets_)[imatch];
+    dr = deltaR(jet,mjet);
+  }
+
+  std::vector<float> sjpt;
+  std::vector<float> sjeta;
+  std::vector<float> sjphi;
+  std::vector<float> sjm;
+  std::vector<float> sjarea;
+  if(imatch>-1 && dr<0.4) {
+    const reco::Jet& mjet =  (*gensubjets_)[imatch];
+    jets_.genptG[jets_.ngen]  = mjet.pt();
+    jets_.genetaG[jets_.ngen] = mjet.eta();
+    jets_.genphiG[jets_.ngen] = mjet.phi();
+    jets_.genmG[jets_.ngen]   = mjet.mass();
+    
+    if(mjet.numberOfDaughters()>0) {
+      for (unsigned k = 0; k < mjet.numberOfDaughters(); ++k) {
+        const reco::Candidate & dp = *mjet.daughter(k);
+        sjpt.push_back(dp.pt());
+        sjeta.push_back(dp.eta());
+        sjphi.push_back(dp.phi());
+        sjm.push_back(dp.mass());
+        //sjarea.push_back(dp.castTo<reco::JetRef>()->jetArea());
+      }
+    }
+  }
+  else {
+    jets_.genptG[jets_.ngen]  = -999.;
+    jets_.genetaG[jets_.ngen] = -999.;
+    jets_.genphiG[jets_.ngen] = -999.;
+    jets_.genmG[jets_.ngen]   = -999.;
+    
+    sjpt.push_back(-999.);
+    sjeta.push_back(-999.);
+    sjphi.push_back(-999.);
+    sjm.push_back(-999.);
+    sjarea.push_back(-999.);
+  }
+
+  jets_.genSubJetPt.push_back(sjpt);
+  jets_.genSubJetEta.push_back(sjeta);
+  jets_.genSubJetPhi.push_back(sjphi);
+  jets_.genSubJetM.push_back(sjm);
+  jets_.genSubJetArea.push_back(sjarea);
 }
 
 DEFINE_FWK_MODULE(HiInclusiveJetAnalyzer);
