@@ -2,6 +2,10 @@
 #define __PuWithNtuple_h_
 
 #include "RecoJets/JetProducers/interface/PileUpSubtractor.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+
+#include <TTree.h>
 
 class PuWithNtuple : public PileUpSubtractor {
  public:
@@ -27,10 +31,13 @@ class PuWithNtuple : public PileUpSubtractor {
     int Neta_;
 
     int nref;
-    float jteta[100],jtphi[100],jtpt[100],jtpu[100],jtex[100];
+    float jteta[100],jtphi[100],jtpt[100],jtpu[100],jtexpt[100];
+    int jtexngeom[100], jtexntow[100];
 
-    int vn[82],vnex[82];
-    float veta[82],vmean[82],vrms[82];
+    int vngeom[82],vntow[82],vieta[82];
+    float veta[82],vmean0[82],vrms0[82],vmean1[82],vrms1[82];
+
+    double etaedge[42];
     
 };
 

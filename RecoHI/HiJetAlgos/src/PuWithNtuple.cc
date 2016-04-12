@@ -6,10 +6,17 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 using namespace std;
 
-PuWithNtuple::PuWithNtuple(const edm::ParameterSet& iConfig, edm::ConsumesCollector && iC) : PileUpSubtractor(iConfig, std::move(iC)),
-											     sumRecHits_(iConfig.getParameter<bool>("sumRecHits")),
-											     dropZeroTowers_(iConfig.getUntrackedParameter<bool>("dropZeroTowers",true))
+PuWithNtuple::PuWithNtuple(const edm::ParameterSet& iConfig, edm::ConsumesCollector && iC) : 
+  PileUpSubtractor(iConfig, std::move(iC)),
+  sumRecHits_(iConfig.getParameter<bool>("sumRecHits")),
+  dropZeroTowers_(iConfig.getUntrackedParameter<bool>("dropZeroTowers",true))
 {
+  
+  if(iConfig.exists("minimumTowersFraction")){
+    minimumTowersFraction_ = iConfig.getParameter<double>("minimumTowersFraction");
+  }else{
+    minimumTowersFraction_ = 0;
+  }
 
   Neta_ = 82;
 
@@ -19,16 +26,30 @@ PuWithNtuple::PuWithNtuple(const edm::ParameterSet& iConfig, edm::ConsumesCollec
   tree_->Branch("jteta",jteta,"jteta[nref]/F");
   tree_->Branch("jtphi",jtphi,"jtphi[nref]/F");
   tree_->Branch("jtpt",jtpt,"jtpt[nref]/F");
-  tree_->Branch("jtex",jtex,"jtex[nref]/F");
+  tree_->Branch("jtexngeom",jtexngeom,"jtexngeom[nref]/I");
+  tree_->Branch("jtexntow",jtexntow,"jtexntow[nref]/I");
+
+  tree_->Branch("jtexpt",jtexpt,"jtexpt[nref]/F");
   tree_->Branch("jtpu",jtpu,"jtpu[nref]/F");
 
 
-  tree_->Branch("n",vn,"n[82]/I");
-  tree_->Branch("nex",vnex,"nex[82]/I");
-  tree_->Branch("eta",veta,"eta[82]/F");
+  tree_->Branch("ngeom",vngeom,"ngeom[82]/I");
+  tree_->Branch("ntow",vntow,"ntow[82]/I");
 
-  tree_->Branch("mean",vmean,"mean[82]/F");
-  tree_->Branch("rms",vrms,"rms[82]/F");
+  tree_->Branch("eta",veta,"eta[82]/F");
+  tree_->Branch("ieta",vieta,"ieta[82]/I");
+
+  tree_->Branch("mean0",vmean0,"mean0[82]/F");
+  tree_->Branch("rms0",vrms0,"rms0[82]/F");
+
+  tree_->Branch("mean1",vmean1,"mean1[82]/F");
+  tree_->Branch("rms1",vrms1,"rms1[82]/F");
+
+  const double etatow[42] = {0.000, 0.087, 0.174, 0.261, 0.348, 0.435, 0.522, 0.609, 0.696, 0.783, 0.870, 0.957, 1.044, 1.131, 1.218, 1.305, 1.392, 1.479, 1.566, 1.653, 1.740, 1.830, 1.930, 2.043, 2.172, 2.322, 2.500, 2.650, 2.853, 3.000, 3.139, 3.314, 3.489, 3.664, 3.839, 4.013, 4.191, 4.363, 4.538, 4.716, 4.889, 5.191};
+
+  for(int i=0;i<42;i++){
+    etaedge[i]=etatow[i];
+  }
 
 }
 
@@ -146,6 +167,33 @@ void PuWithNtuple::calculatePedestal( vector<fastjet::PseudoJet> const & coll )
    
    // Initial values for emean_, emean2, esigma_, ntowers
 
+
+   for(int vi = 0; vi < Neta_; ++vi){
+     int it = vi+1;
+     if(it > Neta_/2) it = vi - Neta_;
+
+     int sign = 1;
+     if(it < 0){
+       sign = -1;
+     }
+     
+     vieta[vi] = it;
+     veta[vi] = sign*(etaedge[abs(it)] + etaedge[abs(it)-1])/2.;
+
+     vngeom[vi] = -99;
+     vntow[vi] = -99;
+
+     vmean1[vi] = -99;
+     vrms1[vi] = -99;
+
+     if((*(ntowersWithJets_.find(it))).second == 0){
+       vmean0[vi] = -99;
+       vrms0[vi] = -99;
+     }
+
+   }
+
+
    for(int i = ietamin_; i < ietamax_+1; i++)
       {
 	 emean_[i] = 0.;
@@ -185,10 +233,17 @@ void PuWithNtuple::calculatePedestal( vector<fastjet::PseudoJet> const & coll )
       {
 
 	 int it = (*gt).first;
+	 int vi = it-1;
+	 if(it < 0) vi = Neta_ + it;
        
 	 double e1 = (*(emean_.find(it))).second;
 	 double e2 = (*emean2.find(it)).second;
 	 int nt = (*gt).second - (*(ntowersWithJets_.find(it))).second;
+
+	 if(vi < Neta_){
+	   vngeom[vi] = (*gt).second;
+	   vntow[vi] = nt;
+	 }
 
 	 LogDebug("PileUpSubtractor")<<" ieta : "<<it<<" number of towers : "<<nt<<" e1 : "<<e1<<" e2 : "<<e2<<"\n";
         
@@ -197,6 +252,15 @@ void PuWithNtuple::calculatePedestal( vector<fastjet::PseudoJet> const & coll )
 	    double eee = e2/nt - e1*e1/(nt*nt);    
 	    if(eee<0.) eee = 0.;
 	    esigma_[it] = nSigmaPU_*sqrt(eee);
+
+	    if(vi < Neta_){
+	      vmean1[vi] = emean_[it];
+	      vrms1[vi] = esigma_[it];
+	      if(vngeom[vi] == vntow[vi]){
+		vmean0[vi] = emean_[it];
+		vrms0[vi] = esigma_[it];
+	      }
+	    }
 	 }
 	 else
 	    {
@@ -223,9 +287,21 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
 
   cout<<"First iteration found N jets : "<<fjJets_->size()<<endl;
 
+  nref = 0;
+
   for (; pseudojetTMP != fjJetsEnd ; ++pseudojetTMP) {
 
     cout<<"Jet with pt "<<pseudojetTMP->perp()<<" to be excluded"<<endl;
+
+    jtexngeom[nref] = 0;
+    jtexntow[nref] = 0;
+
+    jtexpt[nref] = 0;
+
+    jtpt[nref] = pseudojetTMP->perp();
+    jteta[nref] = pseudojetTMP->eta();
+    jtphi[nref] = pseudojetTMP->phi();
+
 
     if(pseudojetTMP->perp() < puPtMin_) continue;
 
@@ -245,8 +321,11 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
 
           cout<<"At ieta : "<<(*im).ieta()<<" -  excluded so far : "<<ntowersWithJets_[(*im).ieta()]<<" out of max "<<geomtowers_[(*im).ieta()]<<endl;
           excludedTowers.push_back(pair<int,int>(im->ieta(),im->iphi()));
+
+	  ++jtexngeom[nref];	    
         }
       }
+
     vector<fastjet::PseudoJet>::const_iterator it = fjInputs_->begin(),
       fjInputsEnd = fjInputs_->end();
 
@@ -257,10 +336,16 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
       vector<pair<int,int> >::const_iterator exclude = find(excludedTowers.begin(),excludedTowers.end(),pair<int,int>(ie,ip));
       if(exclude != excludedTowers.end()) {
         jettowers.push_back(index);
+
+	++jtexntow[nref];
+	const reco::CandidatePtr& originalTower = (*inputs_)[index];	
+	jtexpt[nref] += originalTower->pt();
+
         cout<<"tower with index "<<index<<" excluded."<<endl;
         cout<<"jettowers now : "<<jettowers.size()<<endl;
       } //dr < radiusPU_ 
     } // initial input collection
+    ++nref;
   } // pseudojets
 
   //
@@ -279,6 +364,8 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
       orphanInput.push_back(orphan);
     }
   }
+
+  tree_->Fill();
 
 }
 
