@@ -11,11 +11,11 @@ kt4PFJets.jetPtMin      = cms.double(0.0)
 kt4PFJets.GhostArea     = cms.double(0.005)
 kt2PFJets = kt4PFJets.clone(rParam       = cms.double(0.2))
 
-from HeavyIonsAnalysis.JetAnalysis.jets.akPu2CaloJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akVs2CaloJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akVs2PFJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akPu2PFJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akCs2PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akPu2CaloJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akVs2CaloJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akVs2PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akPu2PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akCs2PFJetSequence_PbPb_mc_cff import *
 from HeavyIonsAnalysis.JetAnalysis.jets.akPu3CaloJetSequence_PbPb_mc_cff import *
 from HeavyIonsAnalysis.JetAnalysis.jets.akVs3CaloJetSequence_PbPb_mc_cff import *
 from HeavyIonsAnalysis.JetAnalysis.jets.akVs3PFJetSequence_PbPb_mc_cff import *
@@ -26,16 +26,16 @@ from HeavyIonsAnalysis.JetAnalysis.jets.akVs4CaloJetSequence_PbPb_mc_cff import 
 from HeavyIonsAnalysis.JetAnalysis.jets.akVs4PFJetSequence_PbPb_mc_cff import *
 from HeavyIonsAnalysis.JetAnalysis.jets.akPu4PFJetSequence_PbPb_mc_cff import *
 from HeavyIonsAnalysis.JetAnalysis.jets.akCs4PFJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akPu5CaloJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akVs5CaloJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akVs5PFJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akPu5PFJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akCs5PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akPu5CaloJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akVs5CaloJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akVs5PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akPu5PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akCs5PFJetSequence_PbPb_mc_cff import *
 
-from HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter4PFJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter5PFJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop4PFJetSequence_PbPb_mc_cff import *
-from HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop5PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter4PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akCsFilter5PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop4PFJetSequence_PbPb_mc_cff import *
+#from HeavyIonsAnalysis.JetAnalysis.jets.akCsSoftDrop5PFJetSequence_PbPb_mc_cff import *
 
 highPurityTracks = cms.EDFilter("TrackSelector",
                                 src = cms.InputTag("hiGeneralTracks"),
@@ -46,8 +46,8 @@ offlinePrimaryVertices.TrackLabel = 'highPurityTracks'
 
 jetSequences = cms.Sequence(
     PFTowers + 
-    voronoiBackgroundPF+
-    voronoiBackgroundCalo+
+    #voronoiBackgroundPF+
+    #voronoiBackgroundCalo+
     kt2PFJets +
     kt4PFJets +
     hiFJRhoProducer +
@@ -61,14 +61,14 @@ jetSequences = cms.Sequence(
 
     akPu3CaloJets +
     akPu3PFJets +
-    akVs3CaloJets +
-    akVs3PFJets +
+    #akVs3CaloJets +
+    #akVs3PFJets +
     akCs3PFJets +
 
     akPu4CaloJets +
     akPu4PFJets +
-    akVs4CaloJets +
-    akVs4PFJets +
+    #akVs4CaloJets +
+    #akVs4PFJets +
     akCs4PFJets +
 
     #akPu5CaloJets +
@@ -77,7 +77,7 @@ jetSequences = cms.Sequence(
     #akVs5PFJets +
     #akCs5PFJets +
 
-    akCsFilter4PFJets +
+    #akCsFilter4PFJets +
     #akCsFilter5PFJets +
     #akCsSoftDrop4PFJets +
     #akCsSoftDrop5PFJets +
@@ -92,14 +92,14 @@ jetSequences = cms.Sequence(
     #akCs2PFJetSequence +
 
     akPu3CaloJetSequence +
-    akVs3CaloJetSequence +
-    akVs3PFJetSequence +
+    #akVs3CaloJetSequence +
+    #akVs3PFJetSequence +
     akPu3PFJetSequence +
     akCs3PFJetSequence +
 
     akPu4CaloJetSequence +
-    akVs4CaloJetSequence +
-    akVs4PFJetSequence +
+    #akVs4CaloJetSequence +
+    #akVs4PFJetSequence +
     akPu4PFJetSequence +
     akCs4PFJetSequence #+
 

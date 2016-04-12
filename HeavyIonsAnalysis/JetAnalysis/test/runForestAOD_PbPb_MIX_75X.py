@@ -26,13 +26,17 @@ process.HiForest.HiForestVersion = cms.string(version)
 process.source = cms.Source("PoolSource",
                             duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
                             fileNames = cms.untracked.vstring(
-                                "/store/user/mnguyen//embeddedFCR/Pythia6_TuneZ2_5020GeV/Pythia6_TuneZ2_bfcr100_Hydjet_5020GeV_RECO/160310_080743/0000/step3_RAW2DIGI_L1Reco_RECO_99.root"
-                                )
+        #"/store/user/mnguyen//embeddedFCR/Pythia6_TuneZ2_5020GeV/Pythia6_TuneZ2_bfcr100_Hydjet_5020GeV_RECO/160310_080743/0000/step3_RAW2DIGI_L1Reco_RECO_99.root"
+#'/store/user/mnguyen/embeddedQCD/Pythia6_TuneZ2_Hydjet_5020GeV/Pythia6_qcd30_TuneZ2_Hydjet_5020GeV_RECO/160207_080507/0000/step3_RAW2DIGI_L1Reco_RECO_26.root',
+        'file:/tmp/mnguyen/step3_RAW2DIGI_L1Reco_RECO_26.root',
+                                ),
+                            #eventsToProcess = cms.untracked.VEventRange("1:13900-1:13900"),
+                            #lumisToProcess = cms.untracked.VLuminosityBlockRange('1:139-1:139')
                             )
 
 # Number of events we want to process, -1 = all events
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(-1)
 )
 
 
@@ -192,7 +196,7 @@ process.ana_step = cms.Path(
                             process.hiFJRhoAnalyzer +
                             #process.ggHiNtuplizer +
                             #process.ggHiNtuplizerGED +
-                            #process.pfcandAnalyzer +
+                            process.pfcandAnalyzer +
                             #process.pfcandAnalyzerCS +
                             process.HiGenParticleAna*
                             process.bParticleAna*

@@ -333,3 +333,16 @@ process.uetable = cms.ESSource("PoolDBESSource",
 )
 process.es_prefer_uetable = cms.ESPrefer('PoolDBESSource','uetable')
 ##########################################UE##########################################
+
+process.load("HLTrigger.HLTfilters.hltHighLevel_cfi")
+process.hltJet60 = process.hltHighLevel.clone()
+process.hltJet60.HLTPaths = ["HLT_HIPuAK4CaloJet60_Eta5p1_v*"]
+
+process.superFilterSequence = cms.Sequence(process.hltJet60)
+process.superFilterPath = cms.Path(process.superFilterSequence)
+#process.skimanalysis.useHBHENoiseProducer = False                                                                                                                          
+
+process.skimanalysis.superFilters = cms.vstring("superFilterPath")
+for path in process.paths:
+    getattr(process,path)._seq = process.superFilterSequence*getattr(process,path)._seq
+

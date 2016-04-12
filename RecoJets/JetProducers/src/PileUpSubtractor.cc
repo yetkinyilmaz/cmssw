@@ -231,7 +231,7 @@ void PileUpSubtractor::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanI
 	    && 
 	    exclude == excludedTowers.end() 
 	    && 
-	    ntowersWithJets_[(*im).ieta()] > minimumTowersFraction*(geomtowers_[(*im).ieta()])) {
+	    geomtowers_[(*im).ieta()] - ntowersWithJets_[(*im).ieta()] > minimumTowersFraction*(geomtowers_[(*im).ieta()])) {
 	  ntowersWithJets_[(*im).ieta()]++;     
 	  excludedTowers.push_back(pair<int,int>(im->ieta(),im->iphi()));
 	}
