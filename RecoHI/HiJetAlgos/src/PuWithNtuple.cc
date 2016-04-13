@@ -263,11 +263,12 @@ void PuWithNtuple::calculatePedestal( vector<fastjet::PseudoJet> const & coll )
 	    esigma_[it] = nSigmaPU_*sqrt(eee);
 
 	    if(vi < Neta_){
-	      vmean1[vi] = emean_[it];
-	      vrms1[vi] = esigma_[it];
 	      if(firstStep){
 		vmean0[vi] = emean_[it];
 		vrms0[vi] = esigma_[it];
+	      }else{
+		vmean1[vi] = emean_[it];
+		vrms1[vi] = esigma_[it];
 	      }
 	    }
 	 }
