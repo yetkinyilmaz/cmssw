@@ -343,7 +343,7 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
     } // initial input collection
 
 
-    for (; it != fjInputsEnd; ++it ) {
+    for (it = fjInputs_->begin(); it != fjInputsEnd; ++it ) {
       int index = it->user_index();
       const reco::CandidatePtr& originalTower = (*inputs_)[index];
       double dr = reco::deltaR((*it),(*pseudojetTMP));
