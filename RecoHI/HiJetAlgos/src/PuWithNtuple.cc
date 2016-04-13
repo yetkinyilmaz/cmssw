@@ -110,6 +110,9 @@ void PuWithNtuple::offsetCorrectJets()
 	jetOffset_[ijet] += Original_Et - etnew;
       }
   }
+
+  tree_->Fill();
+
 }
 
 void PuWithNtuple::subtractPedestal(vector<fastjet::PseudoJet> & coll)
@@ -380,8 +383,6 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
   }
 
   //  cout<<"Number of jets : "<<nref<<endl;
-
-  tree_->Fill();
 
 }
 
