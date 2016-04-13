@@ -172,8 +172,10 @@ void PuWithNtuple::calculatePedestal( vector<fastjet::PseudoJet> const & coll )
    // Initial values for emean_, emean2, esigma_, ntowers
    bool firstStep = 1;
    for (int i = ietamin_; i<ietamax_+1; i++) {
-     if(ntowersWithJets_[i] > 0) firstStep = 0;
-     break;
+     if(ntowersWithJets_[i] > 0){
+       firstStep = 0;
+       break;
+     }
    }
 
    for(int vi = 0; vi < Neta_; ++vi){
@@ -190,11 +192,10 @@ void PuWithNtuple::calculatePedestal( vector<fastjet::PseudoJet> const & coll )
 
      vngeom[vi] = -99;
      vntow[vi] = -99;
-
-     vmean1[vi] = -99;
-     vrms1[vi] = -99;
-
      if(firstStep){
+       vmean1[vi] = -99;
+       vrms1[vi] = -99;
+
        vmean0[vi] = -99;
        vrms0[vi] = -99;
      }
