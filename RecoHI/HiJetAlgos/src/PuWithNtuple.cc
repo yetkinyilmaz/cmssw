@@ -14,15 +14,17 @@ PuWithNtuple::PuWithNtuple(const edm::ParameterSet& iConfig, edm::ConsumesCollec
   
   if(iConfig.exists("minimumTowersFraction")){
     minimumTowersFraction_ = iConfig.getParameter<double>("minimumTowersFraction");
+    cout<<"LIMITING THE MINIMUM TOWERS FRACTION TO : "<<minimumTowersFraction_<<endl;
   }else{
     minimumTowersFraction_ = 0;
+    cout<<"ATTENTION - NOT LIMITING THE MINIMUM TOWERS FRACTION"<<endl;
   }
 
   Neta_ = 82;
 
   tree_ = fs_->make<TTree>("puTree","");
 
-  tree_->Branch("nref",nref,"nref/I");
+  tree_->Branch("nref",&nref,"nref/I");
   tree_->Branch("jteta",jteta,"jteta[nref]/F");
   tree_->Branch("jtphi",jtphi,"jtphi[nref]/F");
   tree_->Branch("jtpt",jtpt,"jtpt[nref]/F");
@@ -31,7 +33,6 @@ PuWithNtuple::PuWithNtuple(const edm::ParameterSet& iConfig, edm::ConsumesCollec
 
   tree_->Branch("jtexpt",jtexpt,"jtexpt[nref]/F");
   tree_->Branch("jtpu",jtpu,"jtpu[nref]/F");
-
 
   tree_->Branch("ngeom",vngeom,"ngeom[82]/I");
   tree_->Branch("ntow",vntow,"ntow[82]/I");
@@ -285,27 +286,27 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
   vector <fastjet::PseudoJet>::iterator pseudojetTMP = fjJets_->begin (),
     fjJetsEnd = fjJets_->end();
 
-  cout<<"First iteration found N jets : "<<fjJets_->size()<<endl;
+  //  cout<<"First iteration found N jets : "<<fjJets_->size()<<endl;
 
   nref = 0;
 
   for (; pseudojetTMP != fjJetsEnd ; ++pseudojetTMP) {
 
-    cout<<"Jet with pt "<<pseudojetTMP->perp()<<" to be excluded"<<endl;
+    //    cout<<"Jet with pt "<<pseudojetTMP->perp()<<" to be excluded"<<endl;
 
-    jtexngeom[nref] = 0;
-    jtexntow[nref] = 0;
 
-    jtexpt[nref] = 0;
-
-    jtpt[nref] = pseudojetTMP->perp();
-    jteta[nref] = pseudojetTMP->eta();
-    jtphi[nref] = pseudojetTMP->phi();
-
+    if(nref < 200){
+      jtexngeom[nref] = 0;
+      jtexntow[nref] = 0;      
+      jtexpt[nref] = 0;
+      jtpt[nref] = pseudojetTMP->perp();
+      jteta[nref] = pseudojetTMP->eta();
+      jtphi[nref] = pseudojetTMP->phi();
+    }
 
     if(pseudojetTMP->perp() < puPtMin_) continue;
 
-    cout<<"Looping over towers..."<<endl;
+    //    cout<<"Looping over towers..."<<endl;
 
     // find towers within radiusPU_ of this jet
     for(vector<HcalDetId>::const_iterator im = allgeomid_.begin(); im != allgeomid_.end(); im++)
@@ -319,10 +320,10 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
             (geomtowers_[(*im).ieta()] - ntowersWithJets_[(*im).ieta()]) > minimumTowersFraction_*(geomtowers_[(*im).ieta()])) {
           ntowersWithJets_[(*im).ieta()]++;
 
-          cout<<"At ieta : "<<(*im).ieta()<<" -  excluded so far : "<<ntowersWithJets_[(*im).ieta()]<<" out of max "<<geomtowers_[(*im).ieta()]<<endl;
+	  //          cout<<"At ieta : "<<(*im).ieta()<<" -  excluded so far : "<<ntowersWithJets_[(*im).ieta()]<<" out of max "<<geomtowers_[(*im).ieta()]<<endl;
           excludedTowers.push_back(pair<int,int>(im->ieta(),im->iphi()));
 
-	  ++jtexngeom[nref];	    
+	  if(nref < 200) jtexngeom[nref]++;  
         }
       }
 
@@ -336,16 +337,29 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
       vector<pair<int,int> >::const_iterator exclude = find(excludedTowers.begin(),excludedTowers.end(),pair<int,int>(ie,ip));
       if(exclude != excludedTowers.end()) {
         jettowers.push_back(index);
-
-	++jtexntow[nref];
-	const reco::CandidatePtr& originalTower = (*inputs_)[index];	
-	jtexpt[nref] += originalTower->pt();
-
-        cout<<"tower with index "<<index<<" excluded."<<endl;
-        cout<<"jettowers now : "<<jettowers.size()<<endl;
-      } //dr < radiusPU_ 
+	//        cout<<"tower with index "<<index<<" excluded."<<endl;
+	//        cout<<"jettowers now : "<<jettowers.size()<<endl;
+      }
     } // initial input collection
-    ++nref;
+
+
+    for (; it != fjInputsEnd; ++it ) {
+      int index = it->user_index();
+      const reco::CandidatePtr& originalTower = (*inputs_)[index];
+      double dr = reco::deltaR((*it),(*pseudojetTMP));
+
+      if(dr < radiusPU_){
+	if(nref < 200){
+	  jtexntow[nref]++;
+	  jtexpt[nref] += originalTower->pt();
+	}
+      }
+
+    }
+
+
+
+    if(nref < 200) nref++;
   } // pseudojets
 
   //
@@ -364,6 +378,8 @@ void PuWithNtuple::calculateOrphanInput(vector<fastjet::PseudoJet> & orphanInput
       orphanInput.push_back(orphan);
     }
   }
+
+  //  cout<<"Number of jets : "<<nref<<endl;
 
   tree_->Fill();
 
