@@ -55,6 +55,7 @@ class GenHIEventProducer : public edm::EDProducer {
         std::vector<std::string> hepmcSrc_;
         edm::ESHandle < ParticleDataTable > pdt;
 
+   edm::EDGetTokenT<edm::HepMCProduct>   genLabel_;
   double ptCut_;
   bool doParticleInfo_;
 };
@@ -79,6 +80,8 @@ GenHIEventProducer::GenHIEventProducer(const edm::ParameterSet& iConfig)
     if(doParticleInfo_){
       ptCut_ = iConfig.getUntrackedParameter<double> ("ptCut",1.);
     }
+    genLabel_ = mayConsume<edm::HepMCProduct>(hepmcSrc_[0]);
+
 }
 
 
@@ -122,8 +125,8 @@ GenHIEventProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     for(size_t ihep = 0; ihep < hepmcSrc_.size(); ++ihep){
         Handle<edm::HepMCProduct> hepmc;
-        iEvent.getByLabel(hepmcSrc_[ihep],hepmc);
-
+	//        iEvent.getByLabel(hepmcSrc_[ihep],hepmc);
+	iEvent.getByToken(genLabel_,hepmc);
         const HepMC::GenEvent* evt = hepmc->GetEvent();
 	if(doParticleInfo_){
 	  HepMC::GenEvent::particle_const_iterator begin = evt->particles_begin();
