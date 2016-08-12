@@ -54,8 +54,10 @@ void plotAll(){
 
    TH1::SetDefaultSumw2();
 
-   const char* bkgFile = "HiForestBKG_02.root";
+   const char* bkgFile = "HiForestBKG_03.root";
    const char* signalFile = "HiForestMIXED.root";
+
+   TCut noN("pdg != 2112 && pdg != 2212");
 
    if(0){
       plot(bkgFile,"bkg_npart_all.png","npart","");
@@ -64,17 +66,18 @@ void plotAll(){
       plot(bkgFile,"bkg_eta_npart12.png","eta","npart >= 10");
       plot(bkgFile,"bkg_eta_all.png","eta","");
       
-      plot(bkgFile,"bkg_eta_npart2_cut.png","eta","npart == 2 && abs(eta) < 10");
-      plot(bkgFile,"bkg_eta_npart5_cut.png","eta","npart > 2 && npart < 10 && abs(eta) < 10");
-      plot(bkgFile,"bkg_eta_npart12_cut.png","eta","npart >= 10 && abs(eta) < 10");
-      plot(bkgFile,"bkg_eta_all_cut.png","eta","abs(eta) < 10");
+      plot(bkgFile,"bkg_eta_npart2_cut.png","eta",noN&&"npart == 2");
+      plot(bkgFile,"bkg_eta_npart5_cut.png","eta",noN&&"npart > 2 && npart < 10");
+      plot(bkgFile,"bkg_eta_npart12_cut.png","eta",noN&&"npart >= 10");
+      plot(bkgFile,"bkg_eta_all_cut.png","eta",noN);
    }
 
-   plot(signalFile,"signal_eta.png","eta","sube == 0");
-   plot(signalFile,"bkg_eta.png","eta","sube != 0");
+   //   plot(signalFile,"signal_eta.png","eta","sube == 0");
+   //   plot(signalFile,"bkg_eta.png","eta","sube != 0");
+   plot(signalFile,"all_eta.png","eta","");
 
-   plot(signalFile,"signal_eta_cut.png","eta","sube == 0 && abs(eta) < 10");
-   plot(signalFile,"bkg_eta_cut.png","eta","sube != 0 && abs(eta) < 10");
+   //   plot(signalFile,"signal_eta_cut.png","eta",noN&&"sube == 0");
+   //   plot(signalFile,"bkg_eta_cut.png","eta",noN&&"sube != 0");
 
 
 
