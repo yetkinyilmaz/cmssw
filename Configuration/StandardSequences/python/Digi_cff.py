@@ -42,3 +42,6 @@ if eras.fastSim.isChosen():
     from FastSimulation.Configuration.DigiAliases_cff import loadDigiAliases
     loadDigiAliases(premix = False)
     from FastSimulation.Configuration.DigiAliases_cff import generalTracks,ecalPreshowerDigis,ecalDigis,hcalDigis,muonDTDigis,muonCSCDigis,muonRPCDigis
+
+from GeneratorInterface.HiGenCommon.HeavyIon_cff import *
+pdigi_hi=cms.Sequence(pdigi_valid_nogen+heavyIon+fixGenInfo)
